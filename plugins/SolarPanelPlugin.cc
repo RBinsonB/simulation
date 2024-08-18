@@ -43,7 +43,38 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
   {
     ignerr << "Missing <link_name> element in SDF" << std::endl;
   }
+
   ignerr << "SOLAR PANEL: INIT" << std::endl;
+}
+
+std::vector<std::string> SolarPanelPlugin::GetVisualChildren(
+      const ignition::gazebo::EntityComponentManager &_ecm) 
+  {
+  // Build the prefix for the scoped name
+  std::string scopedPrefix = this->modelName + "::" + this->linkName + "::";
+
+  // Find all visual entities that are children of this link
+  std::vector<std::string> scopedVisualChildren;
+  _ecm.Each<ignition::gazebo::components::Visual, ignition::gazebo::components::Name, ignition::gazebo::components::ParentEntity>(
+    [&](const ignition::gazebo::Entity &_entity,
+        const ignition::gazebo::components::Visual *,
+        const ignition::gazebo::components::Name *_name,
+        const ignition::gazebo::components::ParentEntity *_parent) -> bool
+    {
+      if (_parent->Data() == linkEntity)
+      {
+        std::string scopedName = scopedPrefix + _name->Data();
+        scopedVisualChildren.push_back(scopedName);
+      }
+      return true;
+    });
+
+  ignerr << "VISUAL CHILDREN OF LINK ARE:" << std::endl;
+  for (auto child_name : scopedVisualChildren) {
+    ignerr << child_name << std::endl;
+  }
+
+  return scopedVisualChildren;
 }
 
 void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
@@ -73,7 +104,11 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
       ignerr << "Failed to create RayQuery" << std::endl;
       return;
     }
-    
+
+    if (this->scopedVisualChildren.empty())
+    {
+      this->scopedVisualChildren = GetVisualChildren(_ecm);
+    }
 
     // Get sun position (assuming there's a sun entity with a pose component)
     ignition::math::Pose3d sunPose;
@@ -114,30 +149,36 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 
     // Check if ray intersects with any obstacles
     auto result = rayQuery->ClosestPoint();
-    bool isBlocked = result;
+    bool isValid = result;
 
     std::string objectName = "unknown";
+    bool isInLOS = false;
     ignition::rendering::NodePtr node = this->scene->NodeById(result.objectId);
     if (node)
     {
       objectName = node->Name();
-      // Now you have the object name
+      if (isValid)
+      {
+        isInLOS = (any_of(this->scopedVisualChildren.begin(), this->scopedVisualChildren.end(), [&](const std::string& elem) { return elem == objectName; }));
+      }
     }
     else
     {
       // Node not found for the given ID
     }
 
+
     // Publish result
-    ignerr << "SOLAR PANEL: " << isBlocked << std::endl;
-    ignerr << "SOLAR PANEL DIST: " << result.distance << std::endl;
-    ignerr << "SOLAR PANEL INTERSECTION POINT: " << result.point << std::endl;
-    ignerr << "SOLAR PANEL INTERSECTION OBJECT ID: " << result.objectId << std::endl;
-    ignerr << "SOLAR PANEL INTERSECTION OBJECT: " << objectName << std::endl;
-    ignerr << "SOLAR PANEL LINK ID: " << this->linkEntity << std::endl;
+    ignerr << "SOLAR PANEL: " << isValid << std::endl;
+    ignerr << "SOLAR PANEL VISIBLE: " << isInLOS << std::endl;
+    // ignerr << "SOLAR PANEL INTERSECTION POINT: " << result.point << std::endl;
+    // ignerr << "SOLAR PANEL INTERSECTION OBJECT ID: " << result.objectId << std::endl;
+    // ignerr << "SOLAR PANEL INTERSECTION OBJECT: " << objectName << std::endl;
+    // ignerr << "SOLAR PANEL LINK ID: " << this->linkEntity << std::endl;
 
     ignition::gazebo::Entity collisionEntity = FindEntityFromRenderingName(_ecm, objectName);
     ignerr << "SOLAR PANEL INTERSECTION ENTITY ID: " << collisionEntity << std::endl;
+
      // Now you have the latest scene, you can perform operations on it
     // For example, let's print the names of all visual nodes
     // for (unsigned int i = 0; i < scene->NodeCount(); ++i)
@@ -146,7 +187,7 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     //   ignerr << "Visual node: " << node->Name() << std::endl;
     // }
     ignition::msgs::Boolean msg;
-    msg.set_data(isBlocked);
+    msg.set_data(isValid);
     this->pub.Publish(msg);
   }
 
