@@ -1,13 +1,47 @@
 cmake_minimum_required(VERSION 3.8)
 project(simulation)
-find_package(ament_cmake REQUIRED)
 
+# Find required packages
+find_package(ament_cmake REQUIRED)
+find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+find_package(ignition-gazebo6 REQUIRED)
+find_package(ignition-physics5 REQUIRED)
+
+# Set Gazebo plugin and sim versions
+set(IGNITION_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+set(IGNITION_SIM_VER ${ignition-gazebo6_VERSION_MAJOR})
+set(IGNITION_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
+
+# Add the plugins directory to the include path
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Plugins)
+
+# Add the SolarPanelPlugin library
+add_library(SolarPanelPlugin SHARED
+  plugins/SolarPanelPlugin.cc
+)
+
+# Link the SolarPanelPlugin library with required dependencies
+target_link_libraries(SolarPanelPlugin
+  PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
+  PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
+  PRIVATE ignition-physics${IGNITION_PHYSICS_VER}::core
+)
+
+# Create the models directory
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/models/curiosity_path)
 
+# Install directories
 install(DIRECTORY
   models
   ${CMAKE_CURRENT_BINARY_DIR}/models
   DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install the plugin library
+install(TARGETS SolarPanelPlugin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
