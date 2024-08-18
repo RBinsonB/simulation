@@ -36,6 +36,9 @@ namespace simulation
         const ignition::gazebo::EntityComponentManager &_ecm,
         const std::string &_renderingName);
 
+    public: std::vector<std::string> GetVisualChildren(
+        const ignition::gazebo::EntityComponentManager &_ecm);
+
     /// \brief Pointer to rendering scene
     private: ignition::rendering::ScenePtr scene{nullptr};
 
@@ -43,6 +46,7 @@ namespace simulation
     private: std::string linkName;
     private: std::string modelName;
     private: std::string topicName;
+    private: std::vector<std::string> scopedVisualChildren;
     // \brief Model interface
     public: ignition::gazebo::Model model{ignition::gazebo::v6::kNullEntity};
     public: ignition::gazebo::Entity linkEntity{ignition::gazebo::v6::kNullEntity};
