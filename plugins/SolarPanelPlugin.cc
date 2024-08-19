@@ -1,8 +1,6 @@
 #include <ignition/msgs/double.pb.h>
 
 #include <string>
-#include <unordered_map>
-#include <utility>
 
 #include <ignition/plugin/Register.hh>
 #include <ignition/gazebo/components/Name.hh>
@@ -42,7 +40,7 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
   }
   else
   {
-    ignerr << "Solar panel plugin should have a <link_name> element "
+    ignerr << "Solar panel plugin should have a <link_name> element. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -53,7 +51,7 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
   }
   else
   {
-    ignerr << "Solar panel plugin should have a <nominal_power> element "
+    ignerr << "Solar panel plugin should have a <nominal_power> element. "
            << "Failed to initialize." << std::endl;
     return;
   }

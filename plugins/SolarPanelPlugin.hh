@@ -9,13 +9,8 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/physics/Entity.hh>
 #include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/Sensor.hh>
 #include <ignition/gazebo/components/Light.hh>
 #include <ignition/gazebo/components/Visual.hh>
-#include <ignition/gazebo/components/World.hh>
 
 namespace simulation
 {
