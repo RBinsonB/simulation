@@ -15,7 +15,6 @@
   <depend>ign-gazebo6</depend>
   <depend>ign-rendering6</depend>
   <depend>ign-sensors6</depend>
-  <depend>ign-physics5</depend>
 
   <exec_depend>xacro</exec_depend>
 
