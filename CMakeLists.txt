@@ -10,7 +10,6 @@ find_package(ignition-physics5 REQUIRED)
 # Set Gazebo plugin and sim versions
 set(IGNITION_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 set(IGNITION_SIM_VER ${ignition-gazebo6_VERSION_MAJOR})
-set(IGNITION_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 # Add the plugins directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Plugins)
@@ -24,7 +23,17 @@ add_library(SolarPanelPlugin SHARED
 target_link_libraries(SolarPanelPlugin
   PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
   PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
-  PRIVATE ignition-physics${IGNITION_PHYSICS_VER}::core
+)
+
+# Add the SolarPanelPlugin library
+add_library(RtgPlugin SHARED
+  plugins/RtgPlugin.cc
+)
+
+# Link the SolarPanelPlugin library with required dependencies
+target_link_libraries(RtgPlugin
+  PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
+  PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
 )
 
 # Create the models directory
