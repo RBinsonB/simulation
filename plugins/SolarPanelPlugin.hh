@@ -32,21 +32,18 @@ namespace simulation
     public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
         const ignition::gazebo::EntityComponentManager &_ecm) final;
 
-    public: ignition::gazebo::Entity FindEntityFromRenderingName(
-        const ignition::gazebo::EntityComponentManager &_ecm,
-        const std::string &_renderingName);
-
     public: std::vector<std::string> GetVisualChildren(
         const ignition::gazebo::EntityComponentManager &_ecm);
 
     /// \brief Pointer to rendering scene
     private: ignition::rendering::ScenePtr scene{nullptr};
 
-
     private: std::string linkName;
     private: std::string modelName;
     private: std::string topicName;
+    private: double nominalPower;
     private: std::vector<std::string> scopedVisualChildren;
+    
     // \brief Model interface
     public: ignition::gazebo::Model model{ignition::gazebo::v6::kNullEntity};
     public: ignition::gazebo::Entity linkEntity{ignition::gazebo::v6::kNullEntity};

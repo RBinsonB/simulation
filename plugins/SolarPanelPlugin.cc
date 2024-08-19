@@ -28,6 +28,7 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
            << "Failed to initialize." << std::endl;
     return;
   }
+
   this->model = model;
   this->modelName = model.Name(_ecm);
 
@@ -35,16 +36,27 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
   if (_sdf->HasElement("link_name"))
   {
     this->linkName = _sdf->Get<std::string>("link_name");
-    this->topicName = this->modelName + "/solar_panel/" + this->linkName;
+    this->topicName = this->modelName + "/" + this->linkName + "/solar_panel_output";
     // Advertise topic where data will be published
-    this->pub = this->node.Advertise<ignition::msgs::Boolean>(this->topicName);
+    this->pub = this->node.Advertise<ignition::msgs::Float>(this->topicName);
   }
   else
   {
-    ignerr << "Missing <link_name> element in SDF" << std::endl;
+    ignerr << "Solar panel plugin should have a <link_name> element "
+           << "Failed to initialize." << std::endl;
+    return;
   }
 
-  ignerr << "SOLAR PANEL: INIT" << std::endl;
+  if (_sdf->HasElement("nominal_power"))
+  {
+    this->nominalPower = _sdf->Get<double>("nominal_power");
+  }
+  else
+  {
+    ignerr << "Solar panel plugin should have a <nominal_power> element "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
 }
 
 std::vector<std::string> SolarPanelPlugin::GetVisualChildren(
@@ -69,19 +81,12 @@ std::vector<std::string> SolarPanelPlugin::GetVisualChildren(
       return true;
     });
 
-  ignerr << "VISUAL CHILDREN OF LINK ARE:" << std::endl;
-  for (auto child_name : scopedVisualChildren) {
-    ignerr << child_name << std::endl;
-  }
-
   return scopedVisualChildren;
 }
 
 void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
-  ignerr << "SOLAR PANEL: POSTUPDATE" << std::endl;
-
   if (!_info.paused)
   {
     this->scene = ignition::rendering::sceneFromFirstRenderEngine();
@@ -90,14 +95,7 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
       ignerr << "Rendering scene not available yet" << std::endl;
       return;
     }
-    // if (nullptr == this->scene)
-    // {
-    //   this->FindScene();
-    // }
 
-    // if (nullptr == this->scene)
-    //   return;
-    
     std::shared_ptr<ignition::rendering::RayQuery> rayQuery = this->scene->CreateRayQuery();
     if (!rayQuery)
     {
@@ -110,7 +108,8 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
       this->scopedVisualChildren = GetVisualChildren(_ecm);
     }
 
-    // Get sun position (assuming there's a sun entity with a pose component)
+    // Get sun entity
+    ignition::gazebo::Entity sunEntity;
     ignition::math::Pose3d sunPose;
     _ecm.Each<ignition::gazebo::components::Name, ignition::gazebo::components::Pose>(
       [&](const ignition::gazebo::Entity &_entity,
@@ -119,21 +118,41 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
       {
         if (_name->Data() == "sun")
         {
+          sunEntity = _entity;
           sunPose = _pose->Data();
-          ignerr << "SOLAR PANEL: FOUND SUN" << std::endl;
           return false;  // Stop iteration
         }
         return true;
       });
+
+    if (sunEntity == ignition::gazebo::v6::kNullEntity)
+    {
+      ignerr << "Sun entity not found" << std::endl;
+      return;
+    }
+
+    // Check if sun entity is of type "light" and has a "direction" element
+    const auto *lightComp = _ecm.Component<ignition::gazebo::components::Light>(sunEntity);
+    ignition::math::Vector3d direction;
+    if (lightComp)
+    {
+      const auto &light = lightComp->Data();
+      direction = light.Direction();
+    }
+    else
+    {
+      ignerr << "Sun entity is not a light!" << std::endl;
+      return;
+    }
+
+    // Rotate sun direction according to sun pose orientation
+    ignition::math::Vector3d sunDirection = sunPose.Rot().RotateVector(direction);
 
     if (this->linkEntity == ignition::gazebo::v6::kNullEntity)
     {
       this->linkEntity =
           this->model.LinkByName(_ecm, this->linkName);
     }
-
-    ignerr << "SOLAR PANEL: COMPUTE" << std::endl;
-
 
     ignition::math::Pose3d linkPose = ignition::gazebo::worldPose(linkEntity, _ecm);
     // Perform ray cast from link to sun
@@ -142,10 +161,6 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     
     rayQuery->SetOrigin(end);
     rayQuery->SetDirection(start - end);
-
-    ignerr << "SOLAR PANEL: DO RAY QUERY" << std::endl;
-    ignerr << "TO " << start.X() << ", " << start.Y() << ", " << start.Z() << std::endl;
-    ignerr << "FROM " << end.X() << ", " << end.Y() << ", " << end.Z() << std::endl;
 
     // Check if ray intersects with any obstacles
     auto result = rayQuery->ClosestPoint();
@@ -162,51 +177,47 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
         isInLOS = (any_of(this->scopedVisualChildren.begin(), this->scopedVisualChildren.end(), [&](const std::string& elem) { return elem == objectName; }));
       }
     }
-    else
+
+    // Compute current power output
+    double currentPower = 0.0;
+    // Compute the angle between the link normal and sun direction
+    // Calculate dot product
+    ignition::math::Vector3d linkNormal = linkPose.Rot().RotateVector(ignition::math::Vector3d::UnitZ);
+    double dotProduct = linkNormal.Dot(-sunDirection); // Negate sunDirection because it points from sun to scene
+
+    // Solar panel will not receive any power if angle is more than 90deg (sun rays hitting horizontally or below)
+    if ((dotProduct > 0.0) && (isInLOS))
     {
-      // Node not found for the given ID
+      // Calculate magnitudes
+      double magnitude1 = linkNormal.Length();
+      double magnitude2 = sunDirection.Length();
+      // Calculate cosine of the angle
+      double cosAngle;
+      if (ignition::math::equal(magnitude1, 0.0) || 
+          ignition::math::equal(magnitude2, 0.0)) 
+      {
+        cosAngle = 1.0;
+      }
+      else
+      {
+        cosAngle = dotProduct / (magnitude1 * magnitude2);
+      }
+      
+      // Compute the effective area factor (cosine of the angle)
+      double effectiveAreaFactor = std::max(0.0, cosAngle);
+
+      // Compute current power based on the angle
+      currentPower = this->nominalPower * effectiveAreaFactor;
     }
 
-
     // Publish result
-    ignerr << "SOLAR PANEL: " << isValid << std::endl;
-    ignerr << "SOLAR PANEL VISIBLE: " << isInLOS << std::endl;
-    // ignerr << "SOLAR PANEL INTERSECTION POINT: " << result.point << std::endl;
-    // ignerr << "SOLAR PANEL INTERSECTION OBJECT ID: " << result.objectId << std::endl;
-    // ignerr << "SOLAR PANEL INTERSECTION OBJECT: " << objectName << std::endl;
-    // ignerr << "SOLAR PANEL LINK ID: " << this->linkEntity << std::endl;
-
-    ignition::gazebo::Entity collisionEntity = FindEntityFromRenderingName(_ecm, objectName);
-    ignerr << "SOLAR PANEL INTERSECTION ENTITY ID: " << collisionEntity << std::endl;
-
-     // Now you have the latest scene, you can perform operations on it
-    // For example, let's print the names of all visual nodes
-    // for (unsigned int i = 0; i < scene->NodeCount(); ++i)
-    // {
-    //   auto node = scene->NodeByIndex(i);
-    //   ignerr << "Visual node: " << node->Name() << std::endl;
-    // }
-    ignition::msgs::Boolean msg;
-    msg.set_data(isValid);
+    ignition::msgs::Float msg;
+    msg.set_data(currentPower);
     this->pub.Publish(msg);
-  }
 
-}
-
-ignition::gazebo::Entity SolarPanelPlugin::FindEntityFromRenderingName(
-    const ignition::gazebo::EntityComponentManager &_ecm,
-    const std::string &_renderingName)
-{
-  auto entities = _ecm.EntitiesByComponents(
-    ignition::gazebo::components::Name(_renderingName),
-    ignition::gazebo::components::Visual());
-  
-  if (!entities.empty())
-  {
-    return entities.front();
+    igndbg << "Solar Panel Plugin:: Current power output: " << currentPower << " watts" << std::endl;
+    igndbg << "Solar Panel Plugin:: In line of sight: " << (isInLOS ? "Yes" : "No") << std::endl;
   }
-  
-  return ignition::gazebo::kNullEntity;
 }
 
 IGNITION_ADD_PLUGIN(SolarPanelPlugin, ignition::gazebo::System,
