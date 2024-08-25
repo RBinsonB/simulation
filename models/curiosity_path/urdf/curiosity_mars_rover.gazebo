@@ -149,13 +149,27 @@
           <background_color>0.9 0.753 0.66 1</background_color>
       </plugin>
 
-      <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
-          <link_name>arm_tools</link_name>
-          <nominal_power>100.0</nominal_power>
-      </plugin>
-      <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
+      <plugin filename="libRtgPlugin.so" name="simulation::RtgPlugin">
           <link_name>chassis</link_name>
           <nominal_power>150.0</nominal_power>
+      <plugin filename="libRechargeableBatteryPlugin.so" name="simulation::RechargeableBatteryPlugin">
+         <!-- https://ntrs.nasa.gov/api/citations/20080015793/downloads/20080015793.pdf -->
+         <battery_name>rechargeable_battery</battery_name>
+         <voltage>30.0</voltage>
+         <open_circuit_voltage>30.0</open_circuit_voltage>
+         <open_circuit_voltage_linear_coefficient>-2.0</open_circuit_voltage_linear_coefficient>
+         <initial_charge>16.0</initial_charge>
+         <capacity>16.0</capacity>
+         <smooth_current_tau>1.0</smooth_current_tau>
+
+         <!-- power source -->
+          <power_source>chassis/radioisotope_thermal_generator_output</power_source>
+
+         <!-- Power load without movement -->
+         <!-- this needs to revised with the actual power consumption of the robot -->
+          <power_load>11.0</power_load>
+
+
       </plugin>
   </gazebo>
 

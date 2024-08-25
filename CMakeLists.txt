@@ -42,6 +42,18 @@ target_link_libraries(RtgPlugin
   PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
 )
 
+# Add the RechargeableBatteryPlugin library
+add_library(RechargeableBatteryPlugin SHARED
+  plugins/RechargeableBatteryPlugin.cc
+)
+
+# Link the SolarPanelPlugin library with required dependencies
+target_link_libraries(RechargeableBatteryPlugin
+  PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
+  PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
+  # PRIVATE ignition-common${IGN_COMMON_VER}::ignition-common${IGNITION_COMMON_VER}
+)
+
 # Create the models directory
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/models/curiosity_path)
 
@@ -53,7 +65,11 @@ install(DIRECTORY
 )
 
 # Install the plugin library
+<<<<<<< HEAD
 install(TARGETS SolarPanelPlugin RtgPlugin
+=======
+install(TARGETS SolarPanelPlugin RtgPlugin RechargeableBatteryPlugin
+>>>>>>> wip
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
