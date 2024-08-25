@@ -34,7 +34,7 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
   if (_sdf->HasElement("link_name"))
   {
     this->linkName = _sdf->Get<std::string>("link_name");
-    this->topicName = this->modelName + "/" + this->linkName + "/solar_panel_output";
+    this->topicName = "/model/" + this->modelName + "/" + this->linkName + "/solar_panel_output";
     // Advertise topic where data will be published
     this->pub = this->node.Advertise<ignition::msgs::Float>(this->topicName);
   }
