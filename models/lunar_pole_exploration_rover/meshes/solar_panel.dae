@@ -2,8 +2,7 @@
 <COLLADA version="1.4.0" xmlns="http://www.collada.org/2005/11/COLLADASchema">
 	<asset>
 		<contributor>
-			<author> SimLab Soft http://www.simLab-soft.com </author>
-			<authoring_tool>SimLab Collada Exporter for SolidWorks</authoring_tool>
+			<author>Robin BARAN</author>
 		</contributor>
 		<created>2024-08-23T18:53:55</created>
 		<modified>2024-08-23T18:53:55</modified>
