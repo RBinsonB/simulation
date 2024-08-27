@@ -96,7 +96,7 @@
 		</geometry>
 	</library_geometries>
 	<library_materials>
-		<material id="ID4" name="texture">
+		<material id="ID4" name="chassis_texture_jpg">
 			<instance_effect url="#ID5"/>
 		</material>
 	</library_materials>
@@ -135,10 +135,10 @@
 		</effect>
 	</library_effects>
 	<library_images>
-		<image id="ID7" name="Img_1_crumpled-gold-foil-texture.jpg">
-			<init_from>file:///C:\Users\Robin\Documents\VIPER\crumpled-gold-foil-texture.jpg</init_from>
-		</image>
-	</library_images>
+      <image id="ID7" name="chassis_texture_jpg">
+        <init_from>chassis_texture.jpg</init_from>
+      </image>
+    </library_images>
 	<scene>
 		<instance_visual_scene url="#Scene"/>
 	</scene>
