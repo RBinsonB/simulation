@@ -105,7 +105,7 @@
         </plugin>
     </gazebo>
 
-    <!-- <gazebo reference="camera_link">
+    <gazebo reference="mast_camera">
         <sensor type="camera" name="camera_sensor">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
@@ -129,6 +129,6 @@
             <always_on>1</always_on>
             <topic>image_raw</topic>
         </sensor>
-    </gazebo> -->
+    </gazebo>
 
 </robot>

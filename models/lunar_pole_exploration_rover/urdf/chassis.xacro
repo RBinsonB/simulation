@@ -161,22 +161,34 @@
 		</inertial>
 	</link>
 
-	<joint name="left_solar_panel_joint" type="fixed">
+  <!-- joint is not of fixed type to avoid "lumping" from some URDF parsers
+  The joint visual need to be independant for the solar panel plugin to work -->
+  <joint name="left_solar_panel_joint" type="revolute">
     <parent link="body"/>
     <child link="left_solar_panel"/>
-    <origin xyz="0.0252 0.7253 0.3829" rpy="-1.4673 0 ${PI}"/>
+    <origin xyz="0.0252 0.7253 0.3829" rpy="1.4673 0 ${-PI}"/>
+	<axis xyz="0 0 1"/>
+    <limit lower="0.0" upper="0.0" effort="1e10" velocity="0.0"/>
   </joint>
-
-  <joint name="right_solar_panel_joint" type="fixed">
+  
+  <!-- joint is not of fixed type to avoid "lumping" from some URDF parsers
+  The joint visual need to be independant for the solar panel plugin to work -->
+  <joint name="right_solar_panel_joint" type="revolute">
     <parent link="body"/>
     <child link="right_solar_panel"/>
     <origin xyz="0.0252 -0.7253 0.3829" rpy="1.4673 0 0"/>
+	<axis xyz="0 0 1"/>
+    <limit lower="0.0" upper="0.0" effort="1e10" velocity="0.0"/>
   </joint>
-
-  <joint name="rear_solar_panel_joint" type="fixed">
+  
+  <!-- joint is not of fixed type to avoid "lumping" from some URDF parsers
+  The joint visual need to be independant for the solar panel plugin to work -->
+  <joint name="rear_solar_panel_joint" type="revolute">
     <parent link="body"/>
     <child link="rear_solar_panel"/>
     <origin xyz="-0.7253 0.0 0.3829" rpy="1.4673 0 ${-PI/2}"/>
+	<axis xyz="0 0 1"/>
+    <limit lower="0.0" upper="0.0" effort="1e10" velocity="0.0"/>
   </joint>
 
   </xacro:macro>
