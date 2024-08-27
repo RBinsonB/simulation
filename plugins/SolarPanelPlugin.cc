@@ -1,7 +1,5 @@
 #include <ignition/msgs/double.pb.h>
 
-#include <string>
-
 #include <ignition/plugin/Register.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
@@ -12,6 +10,9 @@
 #include "SolarPanelPlugin.hh"
 
 using namespace simulation;
+
+ignition::common::EventT<void(const ignition::rendering::ScenePtr &)>
+SolarPanelPlugin::sceneEvent;
 
 void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -55,7 +56,63 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
            << "Failed to initialize." << std::endl;
     return;
   }
+
+  this->sceneChangeConnection = this->sceneEvent.Connect(std::bind(&SolarPanelPlugin::SetScene, this, std::placeholders::_1));
 }
+
+bool SolarPanelPlugin::FindScene()
+{
+  auto loadedEngNames = ignition::rendering::loadedEngines();
+  if (loadedEngNames.empty())
+  {
+    ignerr << "No rendering engine is loaded yet" << std::endl;
+    return false;
+  }
+ 
+  // assume there is only one engine loaded
+  auto engineName = loadedEngNames[0];
+  if (loadedEngNames.size() > 1)
+  {
+    ignerr << "More than one engine is available. "
+      << "Using engine [" << engineName << "]" << std::endl;
+  }
+  auto engine = ignition::rendering::engine(engineName);
+  if (!engine)
+  {
+    ignerr << "Internal error: failed to load engine [" << engineName
+      << "]. Grid plugin won't work." << std::endl;
+    return false;
+  }
+ 
+  if (engine->SceneCount() == 0)
+  {
+    igndbg << "No scene has been created yet" << std::endl;
+    return false;
+  }
+ 
+  // Get first scene
+  auto scenePtr = engine->SceneByIndex(0);
+  if (nullptr == scenePtr)
+  {
+    ignerr << "Internal error: scene is null." << std::endl;
+    return false;
+  }
+ 
+  if (engine->SceneCount() > 1)
+  {
+    igndbg << "More than one scene is available. "
+      << "Using scene [" << scene->Name() << "]" << std::endl;
+  }
+ 
+  if (!scenePtr->IsInitialized() || nullptr == scenePtr->RootVisual())
+  {
+    return false;
+  }
+ 
+  this->scene = scenePtr;
+  return true;
+}
+
 
 std::vector<std::string> SolarPanelPlugin::GetVisualChildren(
       const ignition::gazebo::EntityComponentManager &_ecm) 
@@ -82,16 +139,28 @@ std::vector<std::string> SolarPanelPlugin::GetVisualChildren(
   return scopedVisualChildren;
 }
 
+void SolarPanelPlugin::SetScene(ignition::rendering::ScenePtr _scene)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  // APIs make it possible for the scene pointer to change
+  if (this->scene != _scene)
+  {
+    this->scene = _scene;
+  }
+}
+
 void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
 {
   if (!_info.paused)
   {
-    this->scene = ignition::rendering::sceneFromFirstRenderEngine();
     if (!this->scene)
     {
-      ignerr << "Rendering scene not available yet" << std::endl;
-      return;
+      if (!FindScene())
+      {
+        ignerr << "Rendering scene not available yet" << std::endl;
+        return;
+      }
     }
 
     std::shared_ptr<ignition::rendering::RayQuery> rayQuery = this->scene->CreateRayQuery();
@@ -177,24 +246,25 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
 
     // Compute current power output
-    double currentPower = 0.0;
+    float currentPower = 0.0F;
+
     // Compute the angle between the link normal and sun direction
     // Calculate dot product
     ignition::math::Vector3d linkNormal = linkPose.Rot().RotateVector(ignition::math::Vector3d::UnitZ);
-    double dotProduct = linkNormal.Dot(-sunDirection); // Negate sunDirection because it points from sun to scene
+    float dotProduct = linkNormal.Dot(-sunDirection); // Negate sunDirection because it points from sun to scene
 
     // Solar panel will not receive any power if angle is more than 90deg (sun rays hitting horizontally or below)
-    if ((dotProduct > 0.0) && (isInLOS))
+    if ((dotProduct > 0.0F) && (isInLOS))
     {
       // Calculate magnitudes
-      double magnitude1 = linkNormal.Length();
-      double magnitude2 = sunDirection.Length();
+      float magnitude1 = linkNormal.Length();
+      float magnitude2 = sunDirection.Length();
       // Calculate cosine of the angle
-      double cosAngle;
-      if (ignition::math::equal(magnitude1, 0.0) || 
-          ignition::math::equal(magnitude2, 0.0)) 
+      float cosAngle;
+      if (ignition::math::equal(magnitude1, 0.0F) || 
+          ignition::math::equal(magnitude2, 0.0F)) 
       {
-        cosAngle = 1.0;
+        cosAngle = 1.0F;
       }
       else
       {
@@ -202,7 +272,7 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
       }
       
       // Compute the effective area factor (cosine of the angle)
-      double effectiveAreaFactor = std::max(0.0, cosAngle);
+      float effectiveAreaFactor = std::max(0.0F, cosAngle);
 
       // Compute current power based on the angle
       currentPower = this->nominalPower * effectiveAreaFactor;
