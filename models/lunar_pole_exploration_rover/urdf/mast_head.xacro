@@ -32,10 +32,8 @@
             <parent link="body"/>
             <child link="mast_head_pivot"/>
             <origin xyz="0.630 0.0 1.2535" rpy="0 0 0"/>
-            <axis>
-                <xyz>0 0 1</xyz>
-                <limit lower="${-mast_camera_pan_limit}" upper="${mast_camera_pan_limit}" effort="${mast_camera_pan_effort}" velocity="${mast_camera_pan_velocity}"/>
-            </axis>
+            <axis xyz="0 0 1"/>
+            <limit lower="${-mast_camera_pan_limit}" upper="${mast_camera_pan_limit}" effort="${mast_camera_pan_effort}" velocity="${mast_camera_pan_velocity}"/>
         </joint>
 
         <transmission name="mast_camera_pan_trans">
@@ -80,10 +78,8 @@
             <parent link="mast_head_pivot"/>
             <child link="mast_camera"/>
             <origin xyz="0 0 0" rpy="0 0 0"/>
-            <axis>
-                <xyz>0 1 0</xyz>
-                <limit lower="${-mast_camera_tilt_limit}" upper="${mast_camera_tilt_limit}" effort="${mast_camera_tilt_effort}" velocity="${mast_camera_tilt_velocity}"/>
-            </axis>
+            <axis xyz="0 1 0"/>
+            <limit lower="${-mast_camera_tilt_limit}" upper="${mast_camera_tilt_limit}" effort="${mast_camera_tilt_effort}" velocity="${mast_camera_tilt_velocity}"/>
         </joint>
 
         <transmission name="mast_camera_tilt_trans">

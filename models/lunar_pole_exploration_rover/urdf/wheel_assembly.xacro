@@ -3,7 +3,7 @@
 
   <xacro:macro name="wheel_assembly" params="placement side tX tY">
     <!-- placement is either or rear -->
-    <!-- side is either ${side} side or right side -->
+    <!-- side is either left side or right side -->
     <!-- tX is either 1 for front or -1 for rear -->
     <!-- tY is either 1 for ${side} side or -1 for right side -->
 
@@ -37,12 +37,10 @@
       <joint name="${placement}_${side}_suspension_joint" type="prismatic">
         <parent link="chassis"/>
         <child link="${placement}_${side}_suspension"/>
-        <origin xyz="${tX*0.435} ${tY*0.255} 0.94" rpy="0 0 0"/>
-        <axis>
-          <xyz>0 0 1</xyz>
-          <dynamics damping="${suspension_damping}" friction="${suspension_friction}" spring_stiffness="${suspension_stiffness}"/>
-          <limit lower="${suspension_lower_limit}" upper="${suspension_upper_limit}"/>
-        </axis>
+        <origin xyz="${tX*0.435} ${tY*0.255} 0.094" rpy="0 0 0"/>
+        <limit lower="${suspension_lower_limit}" upper="${suspension_upper_limit}" effort="10000.0" velocity="100.0"/>
+        <axis xyz="0 0 1"/>
+        <dynamics damping="${suspension_damping}" friction="${suspension_friction}" spring_stiffness="${suspension_stiffness}"/>
       </joint>
 
       <link name='${placement}_${side}_wheel_axle'>
@@ -77,10 +75,8 @@
         <parent link="${placement}_${side}_suspension"/>
         <child link="${placement}_${side}_wheel_axle"/>
         <origin xyz="0.0 ${tY*0.27} -0.1265" rpy="0 0 0"/>
-        <axis>
-          <xyz>0 0 1</xyz>
-          <limit lower="${-suspension_steer_limit}" upper="${suspension_steer_limit}" effort="${suspension_steer_effort}" velocity="${suspension_steer_velocity}"/>
-        </axis>
+        <axis xyz="0 0 1"/>
+        <limit lower="${-suspension_steer_limit}" upper="${suspension_steer_limit}" effort="${suspension_steer_effort}" velocity="${suspension_steer_velocity}"/>
       </joint>
 
       <transmission name="${placement}_${side}_wheel_steer_trans">

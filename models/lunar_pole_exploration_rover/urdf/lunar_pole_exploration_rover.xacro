@@ -17,23 +17,23 @@
 
 	<xacro:chassis_body/>
 	<xacro:wheel_assembly
-        placement="left"
-        side="front"
+        placement="front"
+        side="left"
         tX="1"
         tY="1"/>
 	<xacro:wheel_assembly
-        placement="left"
-        side="rear"
+        placement="rear"
+        side="left"
         tX="-1"
         tY="1"/>
 	<xacro:wheel_assembly
-        placement="right"
-        side="front"
+        placement="front"
+        side="right"
         tX="1"
         tY="-1"/>
 	<xacro:wheel_assembly
-        placement="right"
-        side="rear"
+        placement="rear"
+        side="right"
         tX="-1"
         tY="-1"/>
 	<xacro:mast_head/>

@@ -34,9 +34,9 @@
 
 	<xacro:property name="suspension_lower_limit" value="-0.0115"/>
 	<xacro:property name="suspension_upper_limit" value="0.0115"/>
-	<xacro:property name="suspension_damping" value="0.5"/>
-	<xacro:property name="suspension_friction" value="0.5"/>
-	<xacro:property name="suspension_stiffness" value="2000.0"/>
+	<xacro:property name="suspension_damping" value="1000.0"/>
+	<xacro:property name="suspension_friction" value="1000.0"/>
+	<xacro:property name="suspension_stiffness" value="20000.0"/>
 
 	<xacro:property name="axleHeight" value="0.182"/>
 	<xacro:property name="axleWidth" value="0.1435"/>
