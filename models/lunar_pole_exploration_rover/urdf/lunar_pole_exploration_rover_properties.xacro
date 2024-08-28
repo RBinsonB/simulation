@@ -36,7 +36,7 @@
 	<xacro:property name="suspension_upper_limit" value="0.0115"/>
 	<xacro:property name="suspension_damping" value="1000.0"/>
 	<xacro:property name="suspension_friction" value="1000.0"/>
-	<xacro:property name="suspension_stiffness" value="20000.0"/>
+	<xacro:property name="suspension_stiffness" value="200000.0"/>
 
 	<xacro:property name="axleHeight" value="0.182"/>
 	<xacro:property name="axleWidth" value="0.1435"/>
@@ -46,9 +46,9 @@
 	<xacro:property name="axleComY" value="0.048"/>
 	<xacro:property name="axleComZ" value="0.026"/>
 
-	<xacro:property name="suspension_steer_limit" value="0.6"/>
-	<xacro:property name="suspension_steer_effort" value="10000.0"/>
-	<xacro:property name="suspension_steer_velocity" value="10.0"/>
+	<xacro:property name="suspension_steer_limit" value="0.7"/>
+	<xacro:property name="suspension_steer_effort" value="100000.0"/>
+	<xacro:property name="suspension_steer_velocity" value="1000.0"/>
 
 
 	<!-- Wheels properties -->
@@ -70,11 +70,11 @@
 	<xacro:property name="mastCameraHeight" value="0.130"/>
 
 	<xacro:property name="mast_camera_pan_limit" value="3.490659"/>
-	<xacro:property name="mast_camera_pan_effort" value="500.0"/>
-	<xacro:property name="mast_camera_pan_velocity" value="0.9"/>
+	<xacro:property name="mast_camera_pan_effort" value="50000.0"/>
+	<xacro:property name="mast_camera_pan_velocity" value="4.0"/>
 
 	<xacro:property name="mast_camera_tilt_limit" value="1.308997"/>
-	<xacro:property name="mast_camera_tilt_effort" value="500.0"/>
-	<xacro:property name="mast_camera_tilt_velocity" value="0.5"/>
+	<xacro:property name="mast_camera_tilt_effort" value="50000.0"/>
+	<xacro:property name="mast_camera_tilt_velocity" value="3.0"/>
 	
 </robot>
