@@ -93,5 +93,61 @@
             </actuator>
         </transmission>
 
+        <material name="green">
+            <color rgba="0 0.8 0 1"/>
+        </material>
+
+        <link name="nav_camera_link_left">
+            <!-- Inertial for gazebo to take it into account, Put 1gr weight -->
+            <inertial>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.001" />
+                <inertia ixx="9.1875e-09" ixy="0.0" ixz="0.0" iyy="9.1875e-09" iyz="0.0" izz="1.378125e-08"/>
+            </inertial>
+            <visual>
+                <origin rpy="0.0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <box size="0.0005 0.0005 0.0005"/>
+                </geometry>
+                <material name="green"/>
+            </visual>
+        </link>
+
+        <gazebo reference="nav_camera_link_left">
+            <material>Gazebo/Green</material>
+        </gazebo>
+
+        <joint name="nav_camera_link_left_joint" type="fixed">
+            <parent link="mast_camera"/>
+            <child link="nav_camera_link_left"/>
+            <origin xyz="0.150 0.170 0.0" rpy="0 0 0"/>
+        </joint>
+
+        <link name="nav_camera_link_right">
+            <!-- Inertial for gazebo to take it into account, Put 1gr weight -->
+            <inertial>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.001" />
+                <inertia ixx="9.1875e-09" ixy="0.0" ixz="0.0" iyy="9.1875e-09" iyz="0.0" izz="1.378125e-08"/>
+            </inertial>
+            <visual>
+                <origin rpy="0.0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <box size="0.0005 0.0005 0.0005"/>
+                </geometry>
+                <material name="green"/>
+            </visual>
+        </link>
+
+        <gazebo reference="nav_camera_link_right">
+            <material>Gazebo/Green</material>
+        </gazebo>
+
+        <joint name="nav_camera_link_right_joint" type="fixed">
+            <parent link="mast_camera"/>
+            <child link="nav_camera_link_right"/>
+            <origin xyz="0.150 -0.170 0.0" rpy="0 0 0"/>
+        </joint>
+
     </xacro:macro>
 </robot>

@@ -37,7 +37,8 @@
       <joint name="${placement}_${side}_suspension_joint" type="prismatic">
         <parent link="chassis"/>
         <child link="${placement}_${side}_suspension"/>
-        <origin xyz="${tX*0.435} ${tY*0.255} 0.094" rpy="0 0 0"/>
+        <!-- <origin xyz="${tX*0.435} ${tY*0.255} 0.094" rpy="0 0 0"/> -->
+        <origin xyz="${tX*0.435} ${tY*0.255} 0.09" rpy="0 0 0"/>
         <limit lower="${suspension_lower_limit}" upper="${suspension_upper_limit}" effort="10000.0" velocity="100.0"/>
         <axis xyz="0 0 1"/>
         <dynamics damping="${suspension_damping}" friction="${suspension_friction}" spring_stiffness="${suspension_stiffness}"/>

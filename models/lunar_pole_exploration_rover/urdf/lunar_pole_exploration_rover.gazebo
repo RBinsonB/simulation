@@ -88,7 +88,7 @@
 
         <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
             <render_engine>ogre2</render_engine>
-            <background_color>0.9 0.753 0.66 1</background_color>
+            <background_color>0.0 0.0 0.0 1</background_color>
         </plugin>
 
         <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
@@ -105,17 +105,20 @@
         </plugin>
     </gazebo>
 
-    <gazebo reference="mast_camera">
-        <sensor type="camera" name="camera_sensor">
+
+    <!-- Sensor suit as detailed for NASA VIPER Rover -->
+    <!-- https://ntrs.nasa.gov/api/citations/20210015009/downloads/20210015009%20-%20Colaprete-VIPER%20PIP%20final.pdf -->
+    <gazebo reference="nav_camera_link_left">
+        <sensor type="camera" name="NavCam_left">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
             <camera>
-                <pose>1.0 0 0 0 0 -1.57</pose>
-                <horizontal_fov>1.3962634</horizontal_fov>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.22173</horizontal_fov>
                 <image>
-                    <width>800</width>
-                    <height>800</height>
-                    <format>R8G8B8</format>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
                 </image>
                 <clip>
                     <near>0.01</near>
@@ -127,8 +130,44 @@
                 </noise>
             </camera>
             <always_on>1</always_on>
-            <topic>image_raw</topic>
+            <topic>navcam_left/image_raw</topic>
         </sensor>
     </gazebo>
+
+    <gazebo reference="nav_camera_link_right">
+        <sensor type="camera" name="NavCam_right">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.22173</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>navcam_right/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="body">
+        <sensor name="imu_sensor" type="imu">
+            <always_on>1</always_on>
+            <update_rate>100</update_rate>
+            <visualize>true</visualize>
+            <topic>imu</topic>
+        </sensor>
+    </gazebo>
+
 
 </robot>
