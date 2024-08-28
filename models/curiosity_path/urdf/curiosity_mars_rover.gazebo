@@ -153,7 +153,7 @@
           <link_name>arm_tools</link_name>
           <nominal_power>100.0</nominal_power>
       </plugin>
-      <plugin filename="libRTGPlugin.so" name="simulation::RTGPlugin">
+      <plugin filename="libRtgPlugin.so" name="simulation::RtgPlugin">
           <link_name>chassis</link_name>
             <nominal_power>100.0</nominal_power>
         </plugin>
