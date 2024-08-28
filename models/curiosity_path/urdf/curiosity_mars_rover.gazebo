@@ -149,6 +149,10 @@
           <background_color>0.9 0.753 0.66 1</background_color>
       </plugin>
 
+      <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
+          <link_name>arm_tools</link_name>
+          <nominal_power>100.0</nominal_power>
+      </plugin>
       <plugin filename="libRtgPlugin.so" name="simulation::RtgPlugin">
           <link_name>chassis</link_name>
           <nominal_power>100.0</nominal_power>
