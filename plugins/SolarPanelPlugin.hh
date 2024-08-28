@@ -55,11 +55,7 @@ namespace simulation
     private: std::string linkName;
     private: std::string modelName;
     private: std::string topicName;
-<<<<<<< HEAD
     private: double nominalPower{0.0};
-=======
-    private: float nominalPower;
->>>>>>> main
     private: std::vector<std::string> scopedVisualChildren;
     
     // \brief Model interface
