@@ -153,6 +153,10 @@
           <link_name>arm_tools</link_name>
           <nominal_power>100.0</nominal_power>
       </plugin>
+      <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
+          <link_name>chassis</link_name>
+          <nominal_power>150.0</nominal_power>
+      </plugin>
   </gazebo>
 
   <gazebo reference="lidar_link">
