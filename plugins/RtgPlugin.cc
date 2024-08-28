@@ -66,7 +66,7 @@ void RtgPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     msg.set_data(this->nominalPower);
     this->pub.Publish(msg);
 
-    igndbg << "Radioisotope Thermal Generator Plugin:: Current power output: " << this->nominalPower << " watts" << std::endl;
+    ignerr << "Radioisotope Thermal Generator Plugin:: Current power output: " << this->nominalPower << " watts" << std::endl;
   }
 }
 

@@ -153,18 +153,34 @@
           <link_name>arm_tools</link_name>
           <nominal_power>100.0</nominal_power>
       </plugin>
+      <plugin filename="libRTGPlugin.so" name="simulation::RTGPlugin">
+          <link_name>chassis</link_name>
+            <nominal_power>100.0</nominal_power>
+        </plugin>
+      <plugin filename="ignition-gazebo-thruster-system" name="ignition::gazebo::systems::Thruster">
+        <namespace>tethys</namespace>
+        <joint_name>suspension_arm_B2_R_joint</joint_name>
+        <thrust_coefficient>0.004422</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+        <power_load>100.0</power_load>
+        <battery_name>rechargeable_battery</battery_name>
+      </plugin>
       <plugin filename="libRechargeableBatteryPlugin.so" name="simulation::RechargeableBatteryPlugin">
          <!-- https://ntrs.nasa.gov/api/citations/20080015793/downloads/20080015793.pdf -->
          <battery_name>rechargeable_battery</battery_name>
          <voltage>30.0</voltage>
          <open_circuit_voltage>30.0</open_circuit_voltage>
-         <open_circuit_voltage_linear_coefficient>-2.0</open_circuit_voltage_linear_coefficient>
-         <initial_charge>16.0</initial_charge>
-         <capacity>16.0</capacity>
+         <open_circuit_voltage_constant_coef>30.0</open_circuit_voltage_constant_coef>
+         <open_circuit_voltage_linear_coef>-3.0</open_circuit_voltage_linear_coef>
+         <initial_charge>9.0</initial_charge>
+         <capacity>10.0</capacity>
+         <resistance>0.1</resistance>
          <smooth_current_tau>1.0</smooth_current_tau>
 
          <!-- power source -->
           <power_source>arm_tools/solar_panel_output</power_source>
+          <power_source>chassis/radioisothope_thermal_generator_output</power_source>
 
          <!-- Power load without movement -->
          <!-- this needs to revised with the actual power consumption of the robot -->
