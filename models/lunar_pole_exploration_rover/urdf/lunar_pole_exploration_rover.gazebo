@@ -160,6 +160,58 @@
         </sensor>
     </gazebo>
 
+    <gazebo reference="aft_camera_link_left">
+        <sensor type="camera" name="AftCam_left">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>aftcam_left/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="aft_camera_link_right">
+        <sensor type="camera" name="AftCam_right">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>aftcam_right/image_raw</topic>
+        </sensor>
+    </gazebo>
+
     <gazebo reference="body">
         <sensor name="imu_sensor" type="imu">
             <always_on>1</always_on>

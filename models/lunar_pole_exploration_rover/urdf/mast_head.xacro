@@ -120,7 +120,7 @@
         <joint name="nav_camera_link_left_joint" type="fixed">
             <parent link="mast_camera"/>
             <child link="nav_camera_link_left"/>
-            <origin xyz="0.150 0.170 0.0" rpy="0 0 0"/>
+            <origin xyz="0.150 0.190 0.0" rpy="0 0 0"/>
         </joint>
 
         <link name="nav_camera_link_right">
@@ -146,7 +146,7 @@
         <joint name="nav_camera_link_right_joint" type="fixed">
             <parent link="mast_camera"/>
             <child link="nav_camera_link_right"/>
-            <origin xyz="0.150 -0.170 0.0" rpy="0 0 0"/>
+            <origin xyz="0.150 -0.190 0.0" rpy="0 0 0"/>
         </joint>
 
     </xacro:macro>
