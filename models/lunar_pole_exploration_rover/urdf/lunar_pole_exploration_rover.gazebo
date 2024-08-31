@@ -89,6 +89,7 @@
         <plugin filename="ignition-gazebo-sensors-system" name="ignition::gazebo::systems::Sensors">
             <render_engine>ogre2</render_engine>
             <background_color>0.0 0.0 0.0 1</background_color>
+            <disable_on_drained_battery>true</disable_on_drained_battery>
         </plugin>
 
         <plugin filename="libSolarPanelPlugin.so" name="simulation::SolarPanelPlugin">
@@ -124,6 +125,7 @@
          <!-- Power load without movement -->
          <!-- this needs to revised with the actual power consumption of the robot -->
           <power_load>11.0</power_load>
+          <power_draining_topic>/battery/discharge</power_draining_topic>
       </plugin>
 
 
