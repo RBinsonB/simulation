@@ -46,7 +46,7 @@
 	<xacro:property name="axleComY" value="0.048"/>
 	<xacro:property name="axleComZ" value="0.026"/>
 
-	<xacro:property name="suspension_steer_limit" value="0.7"/>
+	<xacro:property name="suspension_steer_limit" value="0.9"/>
 	<xacro:property name="suspension_steer_effort" value="100000.0"/>
 	<xacro:property name="suspension_steer_velocity" value="1000.0"/>
 
