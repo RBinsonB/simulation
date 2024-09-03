@@ -93,6 +93,14 @@ The rechargeable battery plugin is a modified version of the stock LinearBattery
   * **power_source** (`array[str]`) -- List of topic of power sources.
   * **power_load** (`double`) -- Idle power load
  
+ * Publications
+   TODO
+
+### SensorPowerSystemPlugin
+The sensor power system plugin pairs with the RechargeableBatteryPlugin to give selected a power load that will drain the battery. Sensors can be deactivated to save power (as it is often the case on real space missions). When the battery is too low, the sensors managed by the plugin will also be deactivated.
+
+TODO: documents fully SensorPowerSystemPlugin 
+ 
 
 #### How to setup the plugin
 The plugin needs to be attached to a model. Example below:
