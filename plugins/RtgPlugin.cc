@@ -33,7 +33,7 @@ void RtgPlugin::Configure(const ignition::gazebo::Entity &_entity,
   if (_sdf->HasElement("link_name"))
   {
     this->linkName = _sdf->Get<std::string>("link_name");
-    this->topicName = this->modelName + "/" + this->linkName + "/radioisothope_thermal_generator_output";
+    this->topicName = this->modelName + "/" + this->linkName + "/radioisotope_thermal_generator_output";
     // Advertise topic where data will be published
     this->pub = this->node.Advertise<ignition::msgs::Float>(this->topicName);
   }
