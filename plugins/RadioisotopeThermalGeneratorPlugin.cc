@@ -69,9 +69,15 @@ void RadioisotopeThermalGeneratorPlugin::Configure(const ignition::gazebo::Entit
   if (_sdf->HasElement("link_name"))
   {
     this->dataPtr->linkName = _sdf->Get<std::string>("link_name");
-    this->dataPtr->topicName = this->dataPtr->modelName + "/" + this->dataPtr->linkName + "/radioisotope_thermal_generator_output";
+    this->dataPtr->topicName = "/model/" + this->dataPtr->modelName + "/" + this->dataPtr->linkName + "/radioisotope_thermal_generator_output";
+    auto validTopic = ignition::transport::TopicUtils::AsValidTopic(this->dataPtr->topicName);
+    if (validTopic.empty())
+    {
+      ignerr << "Failed to create valid topic [" << this->dataPtr->topicName << "]" << std::endl;
+      return;
+    }
     // Advertise topic where data will be published
-    this->dataPtr->nominalPowerPub = this->dataPtr->node.Advertise<ignition::msgs::Float>(this->dataPtr->topicName);
+    this->dataPtr->nominalPowerPub = this->dataPtr->node.Advertise<ignition::msgs::Float>(validTopic);
   }
   else
   {
