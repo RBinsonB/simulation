@@ -2,14 +2,14 @@
 Simulation assets of space-ros demos
 
 ## Plugins
-Additional custom Gazebo plugins are provided.
+Custom Gazebo plugins are included in the package.
 
 ### SolarPanelPlugin
 The solar panel plugin allows to simulate solar panel power output depending on the panel orientation relative to the sun and LOS.
 
 * Required elements
   * **link_name** (`str`) -- The solar panel link in the model
-  * **nominal_power** (`float`) -- The maximum power provided by the solar panel when the sun is hitting perdendicular
+  * **nominal_power** (`float`) -- The maximum power supplied by the solar panel when the sun is hitting perdendicular
 
 * Publications
   * **/model/<model_name>/<link_name>/solar_panel_output** (`std_msgs::msg::Float`) -- Publishes the current solar panel output in watt.
@@ -68,7 +68,7 @@ The radioisotope thermal generator plugin allows to simulate an RTG power output
   * **/model/<model_name>/<link_name>/radioisotope_thermal_generator_output** (`std_msgs::msg::Float`) -- Publishes the current solar panel output in watt.
 
 #### How to setup the plugin
-The plugin needs to be attached to a model.
+The plugin needs to be attached to a model. Example below:
 
 ```XML
 <plugin filename="libRtgPlugin.so" name="simulation::RtgPlugin">
@@ -81,18 +81,96 @@ The plugin needs to be attached to a model.
 The rechargeable battery plugin is a modified version of the stock LinearBatteryPlugin to allow recharge at variable rate. It can be charged by any plugin providing a power output in watt on a Gazebo topic.
 
 * Required elements
-  * **battery_name** (`str`) -- Unique name for the battery
-  * **voltage** (`float`) -- Battery voltage
-  * **open_circuit_voltage** (`float`)
-  * **open_circuit_voltage_constant_coef** (`float`)
-  * **open_circuit_voltage_linear_coef** (`float`)
-  * **initial_charge** (`float`)
-  * **capacity** (`float`)
-  * **resistance** (`float`)
-  * **smooth_current_tau** (`float`)
-  * **power_source** (`array[str]`) -- List of topic of power sources
-  * **power_load** (`array[str]`) -- Idle power load
+  * **battery_name** (`str`) -- Unique name for the battery (required)
+  * **voltage** (`double`) -- Initial voltage of the battery (required)
+  * **open_circuit_voltage** (`double`) -- 
+  * **open_circuit_voltage_constant_coef** (`double`) -- Voltage at full charge
+  * **open_circuit_voltage_linear_coef** (`double`) -- Amount of voltage decrease when no charge
+  * **initial_charge** (`double`) -- Initial charge of the battery in Ah
+  * **capacity** (`double`) -- Total charge that the battery in Ah
+  * **resistance** (`double`) -- Internal resistance in Ohm
+  * **smooth_current_tau** (`double`) -- Coefficient for smoothing current [0, 1]
+  * **power_source** (`array[str]`) -- List of topic of power sources.
+  * **power_load** (`double`) -- Idle power load
  
 
 #### How to setup the plugin
-TODO
+The plugin needs to be attached to a model. Example below:
+
+```XML
+<plugin filename="libRechargeableBatteryPlugin.so" name="simulation::RechargeableBatteryPlugin">
+    <battery_name>rechargeable_battery</battery_name>
+    <voltage>30.0</voltage>
+    <open_circuit_voltage>30.0</open_circuit_voltage>
+    <open_circuit_voltage_constant_coef>30.0</open_circuit_voltage_constant_coef>
+    <open_circuit_voltage_linear_coef>-3.0</open_circuit_voltage_linear_coef>
+    <initial_charge>9.0</initial_charge>
+    <capacity>10.0</capacity>
+    <resistance>0.1</resistance>
+    <smooth_current_tau>1.0</smooth_current_tau>
+
+    <!-- power source -->
+    <power_source>left_solar_panel/solar_panel_output</power_source>
+    <power_source>right_solar_panel/solar_panel_output</power_source>
+    <power_source>rtg_body/radioisotope_thermal_generator_output</power_source>
+
+    <power_load>11.0</power_load>
+    <power_draining_topic>/battery/discharge</power_draining_topic>
+</plugin>
+```
+
+* The power source topic needs to be on the format `<link_name>/<plugin_power_output_name>`. As of now, the following plugins can provide power to charge the battery:
+  * **SolarPanelPlugin**: with topic `<link_name>/solar_panel_output`
+  * **RtgPlugin**: with topic `<link_name>/radioisotope_thermal_generator_output`
+
+## Models
+
+### lunar_pole_exploration_rover
+The lunar pole exploration rover is a lunar rover heavily inspired by the VIPER rover. The model can be loaded in Gazebo to fully simulate the rover. information on the rover was obtained from https://ntrs.nasa.gov/api/citations/20210015009/downloads/20210015009%20-%20Colaprete-VIPER%20PIP%20final.pdf.
+
+
+#### Simulated power
+The rover model includes a battery simulated by the RechargeableBatteryPlugin.
+The battery is recharged by three solar panels of 150W each. The solar panels are simulated by the SolarPanelPlugin. 
+
+#### Control
+The model has four steerable powered wheels. Each wheels is attached to the rover body with a passive suspension.
+In addition, the navigation cameras are mounted on a mast and can pan and tilt.
+
+#### Sensors
+It features a similar sensor suit of the real VIPER rover:
+- A pair of monochrome cameras for navigation, NavCam, mounted on the rover mast
+- A pair of monochrome cameras for the aft blind spots, AftCam, facing back
+- An IMU
+- Odometry plugin
+
+#### Published Topics
+* **/model/lunar_pole_exploration_rover/left_solar_panel/solar_panel_output** (`ignition_msgs::msg::Float32`) -- Publishes the current output of the left solar panel in watt
+* **/model/lunar_pole_exploration_rover/right_solar_panel/solar_panel_output** (`ignition_msgs::msg::Float32`) -- Publishes the current output of the right solar panel in watt
+* **/model/lunar_pole_exploration_rover/rear_solar_panel/solar_panel_output** (`ignition_msgs::msg::Float32`) -- Publishes the current output of the rear solar panel in watt
+* **/model/lunar_pole_exploration_rover/odometry** (`ignition_msgs::msg::Odometry`) -- Robot odometry
+* **/model/lunar_pole_exploration_rover/odometry_with_covariance**(`ignition_msgs::msg::OdometryWithCovariance`) -- Robot odometry
+* **/model/lunar_pole_exploration_rover/pose**(`ignition_msgs::msg::Pose`) -- Robot estimated pose from odometry
+* **aft_cam_left/camera_info** (`ignition_msgs::msg::CameraInfo`) -- AftCam left camera info
+* **aft_cam_right/camera_info** (`ignition_msgs::msg::CameraInfo`) -- AftCam right camera info
+* **nav_cam_left/camera_info** (`ignition_msgs::msg::CameraInfo`) -- NavCam left camera info
+* **nav_cam_right/camera_info** (`ignition_msgs::msg::CameraInfo`) -- NavCam right camera info
+* **aft_cam_left/image_raw** (`ignition_msgs::msg::Image`) -- AftCam left camera image
+* **aft_cam_right/image_raw** (`ignition_msgs::msg::Image`) -- AftCam right camera image
+* **nav_cam_left/image_raw** (`ignition_msgs::msg::Image`) -- NavCam left camera image
+* **nav_cam_right/image_raw** (`ignition_msgs::msg::Image`) -- NavCam right camera image
+
+#### Controllable Joint Interfaces
+* mast_head_pivot_joint (`revolute`) -- NavCam pan joint
+* mast_camera_joint (`revolute`) -- NavCam tilt joint
+* front_left_wheel_joint (`revolute`) -- front left wheel rotation joint
+* rear_left_wheel_joint (`revolute`) -- rear left wheel rotation joint
+* front_right_wheel_joint (`revolute`) -- front right wheel rotation joint
+* rear_right_wheel_joint (`revolute`) -- rear right wheel rotation joint
+* front_left_wheel_axle_joint (`revolute`) -- front left wheel steer joint
+* rear_left_wheel_axle_joint (`revolute`) -- rear left wheel steer joint
+* front_right_wheel_axle_joint (`revolute`) -- front right wheel steer joint
+* rear_right_wheel_axle_joint (`revolute`) -- rear right wheel steer joint
+
+### moon_mons_mouton
+A model for the terrain of the Mons Mouton mountain located near the lunar south pole (also formaly refered to as Liebnitz Beta). This model was generated by using DEM data (site20) from the NASA LRO mission: https://pgda.gsfc.nasa.gov/products/78 (Barker, M.K., et al. (2021), Improved LOLA Elevation Maps for South Pole Landing Sites: Error Estimates and Their Impact on Illumination Conditions, Planetary & Space Science, Volume 203, 1 September 2021, 105119,  doi:10.1016/j.pss.2020.105119.).
