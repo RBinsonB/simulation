@@ -255,6 +255,7 @@ void RechargeableBatteryPlugin::PreUpdate(
     IGN_PROFILE("RechargeableBatteryPlugin::PreUpdate");
     // Get the total power load 
     double total_power_load = this->dataPtr->initialPowerLoad;
+    // ignerr << "Battery power load: " << total_power_load << std::endl;
     _ecm.Each<ignition::gazebo::components::BatteryPowerLoad>(
     [&](const ignition::gazebo::Entity & /*_entity*/,
         const ignition::gazebo::components::BatteryPowerLoad *_batteryPowerLoadInfo)->bool
@@ -263,6 +264,8 @@ void RechargeableBatteryPlugin::PreUpdate(
     //   ignerr << "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss" << std::endl;
     //   ignerr << "Battery power id: " << _batteryPowerLoadInfo->Data().batteryId << std::endl;
     //   ignerr << "Entity id: " << this->dataPtr->batteryEntity << std::endl;
+    //   ignerr << "Power load: " << _batteryPowerLoadInfo->Data().batteryPowerLoad << std::endl;
+    //     ignerr << "batteryentity: " << this->dataPtr->batteryEntity << std::endl;
       if (_batteryPowerLoadInfo->Data().batteryId ==
           this->dataPtr->batteryEntity)
       {
@@ -276,6 +279,7 @@ void RechargeableBatteryPlugin::PreUpdate(
       }
       return true;
     });
+    ignerr << "Battery power load: " << total_power_load << std::endl;
 
     bool success = this->dataPtr->battery->SetPowerLoad(
         this->dataPtr->consumerId, total_power_load);
@@ -628,7 +632,7 @@ void RechargeableBatteryPluginPrivate::OnPowerSourceMsg(int _id,
     std::lock_guard<std::mutex> lock(*(this->powerSources[_id].mutex_ptr));
     this->powerSources[_id].power = _msg.data();
     this->powerSources[_id].updated = true;
-    ignerr << "Power source [" << _id << "] updated with power: " << _msg.data() << std::endl;
+    // ignerr << "Power source [" << _id << "] updated with power: " << _msg.data() << std::endl;
 }
 
 

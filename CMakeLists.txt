@@ -15,6 +15,7 @@ set(IGNITION_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 set(IGNITION_SIM_VER ${ignition-gazebo6_VERSION_MAJOR})
 set(IGNITION_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 set(IGNITION_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
+set(IGNITION_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 # Add the plugins directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Plugins)
@@ -48,12 +49,27 @@ add_library(RechargeableBatteryPlugin SHARED
   plugins/RechargeableBatteryPlugin.cc
 )
 
-# Link the SolarPanelPlugin library with required dependencies
+# Link the RechargeableBatteryPlugin library with required dependencies
 target_link_libraries(RechargeableBatteryPlugin
   PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
   PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
   # PRIVATE ignition-common${IGN_COMMON_VER}::ignition-common${IGNITION_COMMON_VER}
 )
+
+
+# add the SensorPowerSystemPlugin library
+add_library(SensorPowerSystemPlugin SHARED
+  plugins/SensorPowerSystemPlugin.cc
+)
+
+# Link the SensorPowerSystemPlugin library with required dependencies
+target_link_libraries(SensorPowerSystemPlugin
+  PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
+  PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
+  PRIVATE ignition-gazebo${IGNITION_SIM_VER}::ignition-gazebo${IGNITION_SIM_VER}
+  PRIVATE ignition-sensors${IGNITION_SENSORS_VER}::ignition-sensors${IGNITION_SENSORS_VER}
+)
+
 
 # Create the models directory
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/models/curiosity_path)
@@ -66,7 +82,7 @@ install(DIRECTORY
 )
 
 # Install the plugin library
-install(TARGETS SolarPanelPlugin RtgPlugin RechargeableBatteryPlugin
+install(TARGETS SolarPanelPlugin RtgPlugin RechargeableBatteryPlugin SensorPowerSystemPlugin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

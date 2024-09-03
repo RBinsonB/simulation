@@ -104,7 +104,9 @@
             <link_name>rear_solar_panel</link_name>
             <nominal_power>150.0</nominal_power>
         </plugin>
-    </gazebo>
+
+    <plugin filename="libSensorPowerSystemPlugin.so" name="simulation::SensorPowerSystemPlugin">
+    </plugin>
 
     <plugin filename="libRechargeableBatteryPlugin.so" name="simulation::RechargeableBatteryPlugin">
          <battery_name>rechargeable_battery</battery_name>
@@ -127,6 +129,9 @@
           <power_load>11.0</power_load>
           <power_draining_topic>/battery/discharge</power_draining_topic>
       </plugin>
+    </gazebo>
+
+    
 
 
     <!-- Sensor suit as detailed for NASA VIPER Rover -->
@@ -135,6 +140,8 @@
         <sensor type="camera" name="NavCam_left">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
+                <power_load>11.0</power_load>
+                <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.22173</horizontal_fov>
@@ -161,6 +168,8 @@
         <sensor type="camera" name="NavCam_right">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
+            <power_load>12.0</power_load>
+                <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.22173</horizontal_fov>
@@ -187,6 +196,8 @@
         <sensor type="camera" name="AftCam_left">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
+            <power_load>13.0</power_load>
+                <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.91986</horizontal_fov>
@@ -213,6 +224,8 @@
         <sensor type="camera" name="AftCam_right">
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
+            <power_load>15.0</power_load>
+                <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.91986</horizontal_fov>
@@ -240,6 +253,8 @@
             <always_on>1</always_on>
             <update_rate>100</update_rate>
             <visualize>true</visualize>
+            <power_load>16.0</power_load>
+                <battery_name>rechargeable_battery</battery_name>
             <topic>imu</topic>
         </sensor>
     </gazebo>
