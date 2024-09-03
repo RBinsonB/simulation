@@ -33,13 +33,13 @@ target_link_libraries(SolarPanelPlugin
   PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
 )
 
-# Add the RtgPlugin library
-add_library(RtgPlugin SHARED
-  plugins/RtgPlugin.cc
+# Add the RadioisotopeThermalGeneratorPlugin library
+add_library(RadioisotopeThermalGeneratorPlugin SHARED
+  plugins/RadioisotopeThermalGeneratorPlugin.cc
 )
 
-# Link the RtgPlugin library with required dependencies
-target_link_libraries(RtgPlugin
+# Link the RadioisotopeThermalGeneratorPlugin library with required dependencies
+target_link_libraries(RadioisotopeThermalGeneratorPlugin
   PRIVATE ignition-plugin${IGNITION_PLUGIN_VER}::ignition-plugin${IGNITION_PLUGIN_VER}
   PRIVATE ignition-gazebo${IGNITION_SIM_VER}::core
 )
@@ -82,7 +82,7 @@ install(DIRECTORY
 )
 
 # Install the plugin library
-install(TARGETS SolarPanelPlugin RtgPlugin RechargeableBatteryPlugin SensorPowerSystemPlugin
+install(TARGETS SolarPanelPlugin RadioisotopeThermalGeneratorPlugin RechargeableBatteryPlugin SensorPowerSystemPlugin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

@@ -279,7 +279,7 @@ void RechargeableBatteryPlugin::PreUpdate(
       }
       return true;
     });
-    ignerr << "Battery power load: " << total_power_load << std::endl;
+    // ignerr << "Battery power load: " << total_power_load << std::endl;
 
     bool success = this->dataPtr->battery->SetPowerLoad(
         this->dataPtr->consumerId, total_power_load);
