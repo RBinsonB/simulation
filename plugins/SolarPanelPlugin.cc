@@ -65,7 +65,7 @@ bool SolarPanelPlugin::FindScene()
   auto loadedEngNames = ignition::rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
-    ignerr << "No rendering engine is loaded yet" << std::endl;
+    ignwarn << "No rendering engine is loaded yet" << std::endl;
     return false;
   }
  
@@ -73,14 +73,14 @@ bool SolarPanelPlugin::FindScene()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    ignerr << "More than one engine is available. "
+    ignwarn << "More than one engine is available. "
       << "Using engine [" << engineName << "]" << std::endl;
   }
   auto engine = ignition::rendering::engine(engineName);
   if (!engine)
   {
     ignerr << "Internal error: failed to load engine [" << engineName
-      << "]. Grid plugin won't work." << std::endl;
+      << "]. Solar panel plugin won't work." << std::endl;
     return false;
   }
  
@@ -158,7 +158,7 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     {
       if (!FindScene())
       {
-        ignerr << "Rendering scene not available yet" << std::endl;
+        ignwarn << "Rendering scene not available yet" << std::endl;
         return;
       }
     }
