@@ -21,7 +21,6 @@
 #include <ignition/physics/Entity.hh>
 #include <ignition/common/Event.hh>
 
-
 using namespace simulation;
 
 /// \brief Private data class for SolarPanelPlugin
@@ -59,41 +58,41 @@ public:
 public:
   std::mutex mutex;
 
-/// \brief Name of the link
+  /// \brief Name of the link
 public:
   std::string linkName;
 
-/// \brief Name of the model
+  /// \brief Name of the model
 public:
   std::string modelName;
 
-/// \brief Name of the topic where the data will be published
+  /// \brief Name of the topic where the data will be published
 public:
   std::string topicName;
 
-/// \brief Power output of the solar panel
+  /// \brief Power output of the solar panel
 public:
   double nominalPower{0.0};
 
-/// \brief Vector of strings containing the scoped names of the visual children
+  /// \brief Vector of strings containing the scoped names of the visual children
 public:
   std::vector<std::string> scopedVisualChildren;
 
-/// \brief Model interface
-public: ignition::gazebo::Model model{ignition::gazebo::kNullEntity};
-
-/// \brief Link entity
+  /// \brief Model interface
 public:
-  ignition::gazebo::Entity linkEntity{ignition::gazebo::kNullEntity}; 
+  ignition::gazebo::Model model{ignition::gazebo::kNullEntity};
 
-/// \brief Ignition communication node
+  /// \brief Link entity
+public:
+  ignition::gazebo::Entity linkEntity{ignition::gazebo::kNullEntity};
+
+  /// \brief Ignition communication node
 public:
   ignition::transport::Node node;
 
-/// \brief Publisher for the radioisotope thermal generator output
+  /// \brief Publisher for the radioisotope thermal generator output
 public:
   ignition::transport::Node::Publisher nominalPowerPub;
-
 };
 
 //////////////////////////////////////////////////
@@ -104,8 +103,6 @@ SolarPanelPlugin::SolarPanelPlugin()
 
 //////////////////////////////////////////////////
 SolarPanelPlugin::~SolarPanelPlugin() = default;
-
-
 
 //////////////////////////////////////////////////
 void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
@@ -164,7 +161,7 @@ void SolarPanelPlugin::Configure(const ignition::gazebo::Entity &_entity,
 void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
                                   const ignition::gazebo::EntityComponentManager &_ecm)
 {
-  if(_info.paused)
+  if (_info.paused)
   {
     return;
   }
@@ -300,7 +297,6 @@ void SolarPanelPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   igndbg << "Solar Panel Plugin:: Current power output: " << currentPower << " watts" << std::endl;
   igndbg << "Solar Panel Plugin:: In line of sight: " << (isInLOS ? "Yes" : "No") << std::endl;
-  
 }
 
 //////////////////////////////////////////////////
@@ -313,7 +309,6 @@ void SolarPanelPlugin::SetScene(ignition::rendering::ScenePtr _scene)
     this->dataPtr->scene = _scene;
   }
 }
-
 
 //////////////////////////////////////////////////
 bool SolarPanelPluginPrivate::FindScene()
@@ -396,7 +391,7 @@ std::vector<std::string> SolarPanelPluginPrivate::GetVisualChildren(
 }
 
 ignition::common::EventT<void(const ignition::rendering::ScenePtr &)>
-SolarPanelPluginPrivate::sceneEvent;
+    SolarPanelPluginPrivate::sceneEvent;
 
 IGNITION_ADD_PLUGIN(SolarPanelPlugin, ignition::gazebo::System,
                     SolarPanelPlugin::ISystemConfigure,

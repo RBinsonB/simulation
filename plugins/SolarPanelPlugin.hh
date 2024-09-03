@@ -39,7 +39,7 @@ namespace simulation
   public:
     void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
                     const ignition::gazebo::EntityComponentManager &_ecm) final;
-  
+
     /// \brief Set the scene
   public:
     void SetScene(ignition::rendering::ScenePtr _scene);
