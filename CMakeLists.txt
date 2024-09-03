@@ -5,7 +5,6 @@ project(simulation)
 find_package(ament_cmake REQUIRED)
 find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 find_package(ignition-gazebo6 REQUIRED)
-find_package(ignition-sensors6 REQUIRED)
 find_package(ignition-physics5 REQUIRED)
 find_package(ignition-common4 REQUIRED)
 find_package(ignition-rendering6 REQUIRED)
@@ -66,11 +65,7 @@ install(DIRECTORY
 )
 
 # Install the plugin library
-<<<<<<< HEAD
-install(TARGETS SolarPanelPlugin RtgPlugin
-=======
 install(TARGETS SolarPanelPlugin RtgPlugin RechargeableBatteryPlugin
->>>>>>> wip
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
