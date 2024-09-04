@@ -6,9 +6,181 @@
 #include <ignition/gazebo/components/Joint.hh>
 #include <ignition/gazebo/components/JointVelocityCmd.hh>
 #include <ignition/gazebo/components/JointForceCmd.hh>
-
+#include <gz/common/Battery.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
+#include <ignition/msgs/battery_state.pb.h>
+#include "gz/sim/Model.hh"
+#include <ignition/transport/Node.hh>
 
 using namespace simulation;
+
+/// \brief Power Source Information
+struct powerSourceInfo
+{
+    /// \brief Power source id
+    int id{0};
+
+    /// \brief Power source power
+    double nominalPower{0.0};
+
+    /// \brief Flag to check if the power source has been updated
+    bool dataUpdated{false};
+
+    /// \brief Mutex to protect the power source state
+    std::unique_ptr<std::mutex> mutex_ptr = std::make_unique<std::mutex>();
+};
+
+class simulation::RechargeableBatteryPluginPrivate
+{
+
+    /// \brief Reset the plugin
+public:
+    void Reset();
+    /// \brief Name that identifies a battery.
+
+    /// \brief Get the current state of charge of the battery.
+    /// \return State of charge of the battery in range [0.0, 1.0].
+public:
+    double StateOfCharge() const;
+
+    /// \brief Callback connected to additional topics that can start battery
+    /// draining.
+    /// \param[in] _data Message data.
+    /// \param[in] _size Message data size.
+    /// \param[in] _info Information about the message.
+public:
+    void OnBatteryDrainingMsg(
+        const char *_data, const size_t _size,
+        const ignition::transport::MessageInfo &_info);
+
+    /// \brief Callback connected to additional topics that can stop battery
+    /// draining.
+    /// \param[in] _data Message data.
+    /// \param[in] _size Message data size.
+    /// \param[in] _info Information about the message.
+public:
+    void OnBatteryStopDrainingMsg(
+        const char *_data, const size_t _size,
+        const ignition::transport::MessageInfo &_info);
+
+    /// \brief Callback connected to power source topics.
+    /// \param[in] _id The id of the power source.
+    /// \param[in] _msg The message containing the power source power.
+public:
+    void OnPowerSourceMsg(int _id,
+                          const ignition::msgs::Float &_msg);
+
+    /// \brief Ignition communication node
+public:
+    ignition::transport::Node node;
+
+    /// \brief Battery state of charge message publisher
+public:
+    ignition::transport::Node::Publisher statePub;
+
+    /// \brief Battery consumer identifier.
+    /// Current implementation limits one consumer (Model) per battery.
+public:
+    int32_t consumerId;
+
+    /// \brief Name that identifies a battery.
+public:
+    std::string batteryName;
+
+    /// \brief Pointer to battery contained in link.
+public:
+    gz::common::BatteryPtr battery;
+
+    /// \brief Whether warning that battery has drained has been printed once.
+public:
+    bool drainPrinted{false};
+
+    /// \brief Battery entity
+public:
+    ignition::gazebo::Entity batteryEntity{ignition::gazebo::kNullEntity};
+
+    /// \brief modelName
+public:
+    std::string modelName;
+
+    /// \brief Model entity
+public:
+    gz::sim::Model model{ignition::gazebo::kNullEntity};
+
+    /// \brief Open-circuit voltage.
+    /// E(t) = e0 + e1 * Q(t) / c
+public:
+    double e0{0.0};
+
+public:
+    double e1{0.0};
+
+    /// \brief Initial battery charge in Ah.
+public:
+    double q0{0.0};
+
+    /// \brief Battery capacity in Ah.
+public:
+    double c{0.0};
+
+    /// \brief Battery inner resistance in Ohm.
+public:
+    double r{0.0};
+
+    /// \brief Current low-pass filter characteristic time in seconds [0, 1].
+public:
+    double tau{1.0};
+
+    /// \brief Raw battery current in A.
+public:
+    double iraw{0.0};
+
+    /// \brief Smoothed battery current in A.
+public:
+    double ismooth{0.0};
+
+    /// \brief Instantaneous battery charge in Ah.
+public:
+    double q{0.0};
+
+    /// \brief State of charge [0, 1].
+public:
+    double soc{1.0};
+
+    /// \brief Simulation time handled during a single update.
+public:
+    std::chrono::steady_clock::duration stepSize;
+
+    /// \brief Flag on whether the battery should start draining
+public:
+    bool startDraining = false;
+
+    /// \brief The start time when battery starts draining in seconds
+public:
+    int drainStartTime = -1;
+
+    /// \brief Book keep the last time printed, so as to not pollute dbg messages
+    /// in minutes
+public:
+    int lastPrintTime = -1;
+
+    /// \brief Initial power load set trough config
+public:
+    double initialPowerLoad = 0.0;
+
+    /// \brief Total power supply
+public:
+    double totalPowerSupply = 0.0;
+
+    /// \brief Flag to check if the battery is charging
+public:
+    bool isCharging = false;
+
+    /// \brief Vector of power sources information
+public:
+    std::vector<powerSourceInfo> powerSourcesInfo;
+};
 
 /////////////////////////////////////////////////
 RechargeableBatteryPlugin::RechargeableBatteryPlugin()
@@ -21,17 +193,17 @@ RechargeableBatteryPlugin::~RechargeableBatteryPlugin()
 {
     this->dataPtr->Reset();
 
-    if(this->dataPtr->battery)
+    if (this->dataPtr->battery)
     {
         // consumer-specific
-        if (this->dataPtr->consumerId !=-1)
+        if (this->dataPtr->consumerId != -1)
         {
             this->dataPtr->battery->RemoveConsumer(this->dataPtr->consumerId);
         }
 
         // This is needed so that common::Battery stops calling the update function
-    //   of this object, when this object is destroyed. Else seg fault in test,
-    //   though no seg fault in actual run.
+        //   of this object, when this object is destroyed. Else seg fault in test,
+        //   though no seg fault in actual run.
         this->dataPtr->battery->ResetUpdateFunc();
     }
 }
@@ -104,8 +276,8 @@ void RechargeableBatteryPlugin::Configure(const ignition::gazebo::Entity &_entit
     {
         this->dataPtr->batteryName = _sdf->Get<std::string>("battery_name");
         auto initVoltage = _sdf->Get<double>("voltage");
-        ignerr << "Battery name: " << this->dataPtr->batteryName << std::endl;
-        ignerr << "Initial voltage: " << initVoltage << std::endl;
+        igndbg << "Battery name: " << this->dataPtr->batteryName << std::endl;
+        igndbg << "Initial voltage: " << initVoltage << std::endl;
 
         // Create battery entity and some components
         this->dataPtr->batteryEntity = _ecm.CreateEntity();
@@ -118,7 +290,7 @@ void RechargeableBatteryPlugin::Configure(const ignition::gazebo::Entity &_entit
             this->dataPtr->batteryName, initVoltage);
         this->dataPtr->battery->Init();
         // print battery voltage
-        ignerr << "Battery voltage: " << this->dataPtr->battery->Voltage() << std::endl;
+        igndbg << "Battery voltage: " << this->dataPtr->battery->Voltage() << std::endl;
         this->dataPtr->battery->SetUpdateFunc(
             std::bind(&RechargeableBatteryPlugin::OnUpdateVoltage, this,
                       std::placeholders::_1));
@@ -183,41 +355,40 @@ void RechargeableBatteryPlugin::Configure(const ignition::gazebo::Entity &_entit
     }
 
     // subscriber to all power sources topics
-    if(_sdf->HasElement("power_source"))
+    if (_sdf->HasElement("power_source"))
     {
         sdf::ElementConstPtr powerSourceElem = _sdf->FindElement("power_source");
         int id = 0;
-        while(powerSourceElem)
+        while (powerSourceElem)
         {
             const auto &topic = powerSourceElem->Get<std::string>();
             std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/" +
-                           topic};
+                                   topic};
             auto validPowerSourceTopic = ignition::transport::TopicUtils::AsValidTopic(stateTopic);
-            if(validPowerSourceTopic.empty())
+            if (validPowerSourceTopic.empty())
             {
                 ignerr << "Failed to create valid topic. Not valid: ["
                        << topic << "]" << std::endl;
                 return;
             }
-            powerSourceType powerSource;
+            powerSourceInfo powerSource;
             powerSource.id = id;
-            powerSource.power = 0.0;
-            powerSource.updated = false;
-            std::function<void(const ignition::msgs::Float &)> callback = std::bind(&RechargeableBatteryPluginPrivate::OnPowerSourceMsg, 
-                                                                                    this->dataPtr.get(), id, std::placeholders::_1);    
+            powerSource.nominalPower = 0.0;
+            powerSource.dataUpdated = false;
+            std::function<void(const ignition::msgs::Float &)> callback = std::bind(&RechargeableBatteryPluginPrivate::OnPowerSourceMsg,
+                                                                                    this->dataPtr.get(), id, std::placeholders::_1);
             this->dataPtr->node.Subscribe(validPowerSourceTopic, callback);
-            ignerr << "RechargeableBatteryPlugin subscribes to power source topic ["
+            ignmsg << "RechargeableBatteryPlugin subscribes to power source topic ["
                    << validPowerSourceTopic << "]." << std::endl;
-            this->dataPtr->powerSources.emplace_back(std::move(powerSource));
+            this->dataPtr->powerSourcesInfo.emplace_back(std::move(powerSource));
             powerSourceElem = powerSourceElem->GetNextElement("power_source");
             id++;
         }
     }
-    else 
+    else
     {
         ignerr << "No power source topic specified." << std::endl;
     }
-    
 
     ignmsg << "RechargeableBatteryPlugin configured. Battery name: "
            << this->dataPtr->battery->Name() << std::endl;
@@ -253,46 +424,25 @@ void RechargeableBatteryPlugin::PreUpdate(
     ignition::gazebo::EntityComponentManager &_ecm)
 {
     IGN_PROFILE("RechargeableBatteryPlugin::PreUpdate");
-    // Get the total power load 
-    double total_power_load = this->dataPtr->initialPowerLoad;
+    // Recalculate total power load among all consumers
+    double totalPowerLoad = this->dataPtr->initialPowerLoad;
     _ecm.Each<ignition::gazebo::components::BatteryPowerLoad>(
-    [&](const ignition::gazebo::Entity & /*_entity*/,
-        const ignition::gazebo::components::BatteryPowerLoad *_batteryPowerLoadInfo)->bool
-    {
-      // print battery power id  and the entity id
-    //   ignerr << "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss" << std::endl;
-    //   ignerr << "Battery power id: " << _batteryPowerLoadInfo->Data().batteryId << std::endl;
-    //   ignerr << "Entity id: " << this->dataPtr->batteryEntity << std::endl;
-      if (_batteryPowerLoadInfo->Data().batteryId ==
-          this->dataPtr->batteryEntity)
-      {
-        total_power_load = total_power_load +
-            _batteryPowerLoadInfo->Data().batteryPowerLoad;
-            // ignerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-            // ignerr << "Battery power load: " << _batteryPowerLoadInfo->Data().batteryPowerLoad << std::endl;
-            // // print consumer id
-            // ignerr << "Consumer id: " << _batteryPowerLoadInfo->Data().batteryId << std::endl;
-            // ignerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-      }
-      return true;
-    });
+        [&](const ignition::gazebo::Entity & /*_entity*/,
+            const ignition::gazebo::components::BatteryPowerLoad *_batteryPowerLoadInfo) -> bool
+        {
+            if (_batteryPowerLoadInfo->Data().batteryId ==
+                this->dataPtr->batteryEntity)
+            {
+                totalPowerLoad = totalPowerLoad +
+                                 _batteryPowerLoadInfo->Data().batteryPowerLoad;
+            }
+            return true;
+        });
 
     bool success = this->dataPtr->battery->SetPowerLoad(
-        this->dataPtr->consumerId, total_power_load);
+        this->dataPtr->consumerId, totalPowerLoad);
     if (!success)
         ignerr << "Failed to set consumer power load." << std::endl;
-
-    // // Update total power supply
-    // for(auto &powerSource : this->dataPtr->powerSources)
-    // {
-    //     std::lock_guard<std::mutex> lock(*(powerSource.mutex_ptr));
-    //     if(powerSource.updated)
-    //     {
-    //         powerSource.updated = false;
-    //         ignerr << "Power source [" << powerSource.id << "] updated with power: " << powerSource.power << std::endl;
-    //         this->dataPtr->totalPowerSupply += powerSource.power;
-    //     }
-    // }
 
     // start draining the battery if the robot has started moving
     if (!this->dataPtr->startDraining)
@@ -301,18 +451,17 @@ void RechargeableBatteryPlugin::PreUpdate(
             _ecm.ChildrenByComponents(this->dataPtr->model.Entity(), ignition::gazebo::components::Joint());
 
         for (ignition::gazebo::Entity jointEntity : joints)
-        
+
         {
             const auto *jointVelocityCmd =
                 _ecm.Component<ignition::gazebo::components::JointVelocityCmd>(jointEntity);
-            if(jointVelocityCmd)
+            if (jointVelocityCmd)
             {
-                for(double jointVel : jointVelocityCmd->Data())
+                for (double jointVel : jointVelocityCmd->Data())
                 {
-                    if(fabs(static_cast<float>(jointVel)) > 0.01)
+                    if (fabs(static_cast<float>(jointVel)) > 0.01)
                     {
                         this->dataPtr->startDraining = true;
-                        ignerr << "Robot is moving2------------------------------------------------------------------------------------------------------" << std::endl;
                         break;
                     }
                 }
@@ -320,22 +469,19 @@ void RechargeableBatteryPlugin::PreUpdate(
 
             const auto *jointForceCmd =
                 _ecm.Component<ignition::gazebo::components::JointForceCmd>(jointEntity);
-            if(jointForceCmd)
+            if (jointForceCmd)
             {
-                for(double jointForce : jointForceCmd->Data())
+                for (double jointForce : jointForceCmd->Data())
                 {
-                    if(fabs(static_cast<float>(jointForce)) > 0.01)
+                    if (fabs(static_cast<float>(jointForce)) > 0.01)
                     {
                         this->dataPtr->startDraining = true;
-                        ignerr << "Robot is moving1------------------------------------------------------------------------------------------------------" << std::endl; 
                         break;
                     }
                 }
             }
         }
     }
-
-
 }
 
 ///////////////////////////////////////////////
@@ -346,14 +492,12 @@ void RechargeableBatteryPlugin::Update(const ignition::gazebo::UpdateInfo &_info
     if (_info.dt < std::chrono::steady_clock::duration::zero())
     {
         ignwarn << "Detected jump back in time ["
-            << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-            << "s]. System may not work properly." << std::endl;
+                << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+                << "s]. System may not work properly." << std::endl;
     }
 
     if (_info.paused)
         return;
-
-    // ignerr << "Battery update" <<  this->dataPtr->startDraining << std::endl;
 
     if (!this->dataPtr->startDraining)
         return;
@@ -369,44 +513,34 @@ void RechargeableBatteryPlugin::Update(const ignition::gazebo::UpdateInfo &_info
     if (drainTime != this->dataPtr->lastPrintTime)
     {
         this->dataPtr->lastPrintTime = drainTime;
-        igndbg << "[Battery Plugin] Battery drain: " << drainTime <<
-        " minutes passed.\n";
+        igndbg << "[Battery Plugin] Battery drain: " << drainTime << " minutes passed.\n";
     }
 
-    // update step size 
+    // update step size
     this->dataPtr->stepSize = _info.dt;
 
+    // Sanity check: tau should be in the range [dt, +inf)
     double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
-    this->dataPtr->stepSize).count()) * 1e-9;
+                     this->dataPtr->stepSize)
+                     .count()) *
+                1e-9;
     if (this->dataPtr->tau < dt)
     {
         ignerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
-            << "configured with [" << this->dataPtr->tau << "]. We'll be using "
-            << "[" << dt << "] instead" << std::endl;
+               << "configured with [" << this->dataPtr->tau << "]. We'll be using "
+               << "[" << dt << "] instead" << std::endl;
         this->dataPtr->tau = dt;
     }
 
-    if(this->dataPtr->battery)
+    if (this->dataPtr->battery)
     {
-        // Update battery state
-        // print battery voltage and battery initial voltage
-        // ignerr << "----------------------------------------------------------" << std::endl;
-        // ignerr << "Battery voltage: " << this->dataPtr->battery->Voltage() << std::endl;
-        // ignerr << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage() << std::endl;
+        // Update battery component
         this->dataPtr->battery->Update();
-
-        // print after battery update
-        // ignerr << "Battery voltage: " << this->dataPtr->battery->Voltage() << std::endl;
-//         ignerr << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage() << std::endl;
-//  ignerr << "----------------------------------------------------------" << std::endl;
-        // Update battery state of charge
         auto *batteryComp = _ecm.Component<ignition::gazebo::components::BatterySoC>(
             this->dataPtr->batteryEntity);
 
         batteryComp->Data() = this->dataPtr->StateOfCharge();
     }
-
-
 }
 
 /////////////////////////////////////////////////
@@ -417,7 +551,7 @@ void RechargeableBatteryPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_
     // Nothing left to do if paused or the publisher wasn't created.
     if (_info.paused || !this->dataPtr->statePub)
         return;
-    
+
     // Publish battery state
     ignition::msgs::BatteryState msg;
     msg.mutable_header()->mutable_stamp()->CopyFrom(ignition::gazebo::convert<ignition::msgs::Time>(_info.simTime));
@@ -433,10 +567,10 @@ void RechargeableBatteryPlugin::PostUpdate(const ignition::gazebo::UpdateInfo &_
         msg.set_power_supply_status(ignition::msgs::BatteryState::DISCHARGING);
     else if (!this->dataPtr->StateOfCharge() > 0.9)
         msg.set_power_supply_status(ignition::msgs::BatteryState::FULL);
-    else 
+    else
         msg.set_power_supply_status(ignition::msgs::BatteryState::NOT_CHARGING);
 
-    this->dataPtr->statePub.Publish(msg); 
+    this->dataPtr->statePub.Publish(msg);
 }
 
 /////////////////////////////////////////////////
@@ -444,66 +578,41 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
 {
     IGN_ASSERT(_battery != nullptr, "Battery pointer is null");
 
-    // ignerr << "Battery update voltage" << std::endl;
-
-    // ignerr << "Battery voltage: before if" << _battery->Voltage() << std::endl;
-
-    if(fabs(_battery->Voltage()) < 1e-3)
-    {
-        ignerr << "Battery voltage is zero" << std::endl;
+    if (fabs(_battery->Voltage()) < 1e-3)
         return 0.0;
-    }
-
-    // ignerr << "Battery voltage: after if" << _battery->Voltage() << std::endl;
-
-    // ignerr << "Battery voltage: after if" << _battery->Voltage() << std::endl;
-    if(this->dataPtr->StateOfCharge() <= 0)
-    {
-        ignerr << "Battery is out of charge" << std::endl;
+    if (this->dataPtr->StateOfCharge() <= 0)
         return _battery->Voltage();
-    }
-        
-    
-    // ignerr << "Battery update voltage two" << std::endl;
-    
+
     auto prevSocInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
 
     // seconds
     double dt = (std::chrono::duration_cast<std::chrono::nanoseconds>(
-        this->dataPtr->stepSize).count()) * 1e-9;
+                     this->dataPtr->stepSize)
+                     .count()) *
+                1e-9;
     double totalpower = 0.0;
     double k = dt / this->dataPtr->tau;
 
-    if(this->dataPtr->startDraining)
+    if (this->dataPtr->startDraining)
     {
         for (auto powerLoad : _battery->PowerLoads())
-        {
             totalpower += powerLoad.second;
-        }
     }
 
     this->dataPtr->iraw = totalpower / _battery->Voltage();
 
-    // ignerr << "iraw: " << this->dataPtr->iraw << std::endl;
-    // ignerr << "volt: " << _battery->Voltage() << std::endl;
-    // ignerr << "total power: " << totalpower << std::endl;
-
-    // current state of charge
     // Update total power supply
-    for(auto &powerSource : this->dataPtr->powerSources)
+    for (auto &powerSource : this->dataPtr->powerSourcesInfo)
     {
         std::lock_guard<std::mutex> lock(*(powerSource.mutex_ptr));
-        if(powerSource.updated)
+        if (powerSource.dataUpdated)
         {
-            powerSource.updated = false;
-            ignerr << "Power source [" << powerSource.id << "] updated with power: " << powerSource.power << std::endl;
-            this->dataPtr->totalPowerSupply += powerSource.power;
+            powerSource.dataUpdated = false;
+            ignerr << "Power source [" << powerSource.id << "] updated with power: " << powerSource.nominalPower << std::endl;
+            this->dataPtr->totalPowerSupply += powerSource.nominalPower;
         }
     }
-    // if(this->dataPtr->totalPowerSupply > 100)
-    // {
-    //     ignerr << "-slssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssk" << std::endl;
-    // }
+
     ignerr << "SOC: " << this->dataPtr->StateOfCharge() << std::endl;
     ignerr << "total power supply: " << this->dataPtr->totalPowerSupply << std::endl;
     ignerr << "total power: " << totalpower << std::endl;
@@ -514,7 +623,7 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
 
     // compute current due to power sources
     float powerSourceCurrent = 0.0;
-    if(this->dataPtr->isCharging)
+    if (this->dataPtr->isCharging)
     {
         powerSourceCurrent = this->dataPtr->totalPowerSupply / _battery->Voltage();
         ignerr << "Charging current: " << powerSourceCurrent << std::endl;
@@ -522,29 +631,19 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
         this->dataPtr->iraw -= powerSourceCurrent;
         ignerr << "Charging current: " << powerSourceCurrent << std::endl;
         ignerr << "iraw: " << this->dataPtr->iraw << std::endl;
-
     }
     // reset total power supply to zero
     this->dataPtr->totalPowerSupply = 0.0;
 
-    // if(this->dataPtr->StateOfCharge() < 0.9)
-    // {
-    //     this->dataPtr->iraw -= powerSourceCurrent;
-    // }
-
     this->dataPtr->ismooth = this->dataPtr->ismooth + k *
-    (this->dataPtr->iraw - this->dataPtr->ismooth);
+                                                          (this->dataPtr->iraw - this->dataPtr->ismooth);
 
     // Convert dt to hours
     this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
-        3600.0);
-        ignerr << "Dt: " << dt*1000 << std::endl;
-
+                                           3600.0);
 
     // open circuit voltage
-    double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
-    1 - this->dataPtr->q / this->dataPtr->c)
-      - this->dataPtr->r * this->dataPtr->ismooth;
+    double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (1 - this->dataPtr->q / this->dataPtr->c) - this->dataPtr->r * this->dataPtr->ismooth;
 
     ignerr << "e0: " << this->dataPtr->e0 << std::endl;
     ignerr << "e1: " << this->dataPtr->e1 << std::endl;
@@ -552,19 +651,7 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
     ignerr << "c: " << this->dataPtr->c << std::endl;
     ignerr << "r: " << this->dataPtr->r << std::endl;
     ignerr << "ismooth: " << this->dataPtr->ismooth << std::endl;
-
     ignerr << "Battery voltage: before update voltage" << voltage << std::endl;
-
-    // stop program if the voltage is zero
-    
-    // print all the values
-    // ignerr << "volt: " << voltage << std::endl;
-    // ignerr << "e0: " << this->dataPtr->e0 << std::endl;
-    // ignerr << "e1: " << this->dataPtr->e1 << std::endl;
-    // ignerr << "q: " << this->dataPtr->q << std::endl;
-    // ignerr << "c: " << this->dataPtr->c << std::endl;
-    // ignerr << "r: " << this->dataPtr->r << std::endl;
-    // ignerr << "ismooth: " << this->dataPtr->ismooth << std::endl;
 
     // Estimate state of charge
     this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
@@ -576,68 +663,60 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
     {
         igndbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
         igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
-            << std::endl;
+               << std::endl;
         igndbg << "charging current: " << powerSourceCurrent << std::endl;
         igndbg << "voltage: " << voltage << std::endl;
         igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
-            << " (q " << this->dataPtr->q << ")" << std::endl << std::endl;
+               << " (q " << this->dataPtr->q << ")" << std::endl
+               << std::endl;
     }
     if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)
     {
         ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
         this->dataPtr->drainPrinted = true;
     }
-    // ignerr << "**************************************************************" << std::endl;
-    // ignerr << "Battery voltage: after update voltage" << voltage << std::endl;
-    // ignerr << "----------------------------------------------------------" << std::endl;
 
     return voltage;
-
-
 }
 
 /////////////////////////////////////////////////
 void RechargeableBatteryPluginPrivate::Reset()
 {
-    // Reset the plugin
-   this->totalPowerSupply = 0.0;
-   this->ismooth = 0.0;
-    this->iraw = 0.0;   
+    this->totalPowerSupply = 0.0;
+    this->ismooth = 0.0;
+    this->iraw = 0.0;
     this->q = this->q0;
     this->startDraining = false;
 }
 
 //////////////////////////////////////////////////
 void RechargeableBatteryPluginPrivate::OnBatteryDrainingMsg(
-  const char *, const size_t, const ignition::transport::MessageInfo &)
+    const char *, const size_t, const ignition::transport::MessageInfo &)
 {
-  this->startDraining = true;
+    this->startDraining = true;
 }
 
 //////////////////////////////////////////////////
 void RechargeableBatteryPluginPrivate::OnBatteryStopDrainingMsg(
-  const char *, const size_t, const ignition::transport::MessageInfo &)
+    const char *, const size_t, const ignition::transport::MessageInfo &)
 {
-  this->startDraining = false;
+    this->startDraining = false;
 }
 
 //////////////////////////////////////////////////
 void RechargeableBatteryPluginPrivate::OnPowerSourceMsg(int _id,
-  const ignition::msgs::Float &_msg)
+                                                        const ignition::msgs::Float &_msg)
 {
-    std::lock_guard<std::mutex> lock(*(this->powerSources[_id].mutex_ptr));
-    this->powerSources[_id].power = _msg.data();
-    this->powerSources[_id].updated = true;
-    ignerr << "Power source [" << _id << "] updated with power: " << _msg.data() << std::endl;
+    std::lock_guard<std::mutex> lock(*(this->powerSourcesInfo[_id].mutex_ptr));
+    this->powerSourcesInfo[_id].nominalPower = _msg.data();
+    this->powerSourcesInfo[_id].dataUpdated = true;
 }
-
 
 //////////////////////////////////////////////////
 double RechargeableBatteryPluginPrivate::StateOfCharge() const
 {
     return this->soc;
 }
-
 
 #include <ignition/plugin/Register.hh>
 
