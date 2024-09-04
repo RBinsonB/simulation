@@ -1,5 +1,5 @@
-#ifndef SENSOR_POWER_SYSTEM_HH_
-#define SENSOR_POWER_SYSTEM_HH_
+#ifndef SENSOR_POWER_SYSTEM_PLUGIN_HH_
+#define SENSOR_POWER_SYSTEM_PLUGIN_HH_
 
 
 
@@ -61,4 +61,4 @@ class SensorPowerSystemPlugin
       };
 }
 
-#endif // SENSOR_POWER_SYSTEM_HH_
+#endif // SENSOR_POWER_SYSTEM_PLUGIN_HH_

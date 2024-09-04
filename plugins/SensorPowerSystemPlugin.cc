@@ -11,8 +11,6 @@
 #include "gz/sim/Model.hh"
 #include <gz/common/Util.hh>
 #include <gz/sensors/Manager.hh>
-
-// include sensor manager
 #include "ignition/sensors/Sensor.hh"
 
 using namespace simulation;
@@ -137,8 +135,6 @@ void SensorPowerSystemPlugin::Configure(const ignition::gazebo::Entity &_entity,
                     SensorInfo sensorInfo;
                     sensorInfo.id = sensorCount;
                     sensorInfo.name = cameraName->Data();
-                    ignerr << "Camera: " << sensorInfo.name << std::endl;
-                    ignerr << "Camera: " << cameraName->Data() << " id: " << sensorInfo.id << std::endl;
                     sensorInfo.powerLoad = parent->Get<double>("power_load");
                     sensorInfo.batteryName = parent->Get<std::string>("battery_name");
                     sensorInfo.enableSensor = true;
@@ -163,7 +159,6 @@ void SensorPowerSystemPlugin::Configure(const ignition::gazebo::Entity &_entity,
         {
             // get the imu name
             auto imuName = _ecm.Component<ignition::gazebo::components::Name>(_entity);
-            ignerr << "IMU: " << imuName->Data() << std::endl;
             if (imuName)
             {
                 auto imuPtr = _ecm.Component<ignition::gazebo::components::Imu>(_entity);

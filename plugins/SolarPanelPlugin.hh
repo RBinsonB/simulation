@@ -1,5 +1,5 @@
-#ifndef SOLARPANELPLUGIN_HH_
-#define SOLARPANELPLUGIN_HH_
+#ifndef SOLAR_PANEL_PLUGIN_HH_
+#define SOLAR_PANEL_PLUGIN_HH_
 
 #include <string>
 #include <mutex>
@@ -49,4 +49,4 @@ namespace simulation
     std::unique_ptr<SolarPanelPluginPrivate> dataPtr;
   };
 }
-#endif // SOLARPANELPLUGIN_HH_
+#endif // SOLAR_PANEL_PLUGIN_HH_

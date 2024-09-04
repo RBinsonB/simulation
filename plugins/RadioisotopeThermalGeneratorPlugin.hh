@@ -1,5 +1,5 @@
-#ifndef RadioisotopeThermalGeneratorPlugin_HH_
-#define RadioisotopeThermalGeneratorPlugin_HH_
+#ifndef Radioisotope_Thermal_Generator_Plugin_HH_
+#define Radioisotope_Thermal_Generator_Plugin_HH_
 
 #include <memory>
 #include <ignition/gazebo/System.hh>
@@ -47,4 +47,4 @@ namespace simulation
     std::unique_ptr<RadioisotopeThermalGeneratorPluginPrivate> dataPtr;
   };
 }
-#endif // RadioisotopeThermalGeneratorPlugin_HH_
+#endif // Radioisotope_Thermal_Generator_Plugin_HH_
