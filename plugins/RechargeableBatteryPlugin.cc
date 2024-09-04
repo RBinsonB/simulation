@@ -265,7 +265,7 @@ void RechargeableBatteryPlugin::PreUpdate(
     //   ignerr << "Battery power id: " << _batteryPowerLoadInfo->Data().batteryId << std::endl;
     //   ignerr << "Entity id: " << this->dataPtr->batteryEntity << std::endl;
     //   ignerr << "Power load: " << _batteryPowerLoadInfo->Data().batteryPowerLoad << std::endl;
-    //     ignerr << "batteryentity: " << this->dataPtr->batteryEntity << std::endl;
+        // ignerr << "batteryentity: " << this->dataPtr->batteryEntity << std::endl;
       if (_batteryPowerLoadInfo->Data().batteryId ==
           this->dataPtr->batteryEntity)
       {
@@ -273,13 +273,13 @@ void RechargeableBatteryPlugin::PreUpdate(
             _batteryPowerLoadInfo->Data().batteryPowerLoad;
             // ignerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
             // ignerr << "Battery power load: " << _batteryPowerLoadInfo->Data().batteryPowerLoad << std::endl;
-            // // print consumer id
+            // // // print consumer id
             // ignerr << "Consumer id: " << _batteryPowerLoadInfo->Data().batteryId << std::endl;
             // ignerr << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
       }
       return true;
     });
-    // ignerr << "Battery power load: " << total_power_load << std::endl;
+    ignerr << "Battery power load: " << total_power_load << std::endl;
 
     bool success = this->dataPtr->battery->SetPowerLoad(
         this->dataPtr->consumerId, total_power_load);

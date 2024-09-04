@@ -2,61 +2,29 @@
 #define SENSOR_POWER_SYSTEM_HH_
 
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/transport/Node.hh>
-#include "gz/sim/Model.hh"
+
 #include <ignition/gazebo/System.hh>
-#include <gz/common/Util.hh>
-#include <gz/sensors/Manager.hh>
+
 
 namespace simulation
 {
-    // todo add this functionality to the sensor plugin
+    // Forward declaration
+    class SensorPowerSystemPrivate;
 
-  struct sensorType
-  {
-        int id{0};
-      std::string name;
-      bool state{false};
-    std::unique_ptr<std::mutex> mutex_ptr = std::make_unique<std::mutex>();
-      bool updated{false};
-      float power{0.0};
-      std::string batteryName;
-      bool batteryExist{false};
-      ignition::gazebo::Entity BatteryConsumerEntity{ignition::gazebo::kNullEntity};
-      ignition::gazebo::Entity BatteryEntity{ignition::gazebo::kNullEntity};
-  };
-
-
-  class SensorPowerSystemPrivate
-  {
-      public:
-            void OnActivateSensor(int _id, const ignition::msgs::Boolean &_msg);
-
-     public:
-        std::string modelName;
-    public:
-        gz::sim::Model model{ignition::gazebo::kNullEntity};
-
-    /// \brief Ignition communication node
-    public:
-        ignition::transport::Node node;
-
-    public:
-        std::vector<sensorType> sensorsInfo;
-    public: 
-        std::vector<std::string> batteryNames;
-    
-    public: 
-     bool battery_initialized{false};
-
-    public: bool enabled{true};
-
-
-    // public: std::unordered_map<ignition::gazebo::Entity, std::vector<sensorType>> sensorMap;
-
-    public: bool HasSufficientBattery(const ignition::gazebo::EntityComponentManager &_ecm) const;
-  };
+    /// \brief A plugin to manage the power of sensors. It reads the power load of each sensor
+    /// and the battery that powers it. It then adds it as a consumers to the battery.
+    /// In addition, a topic is exposed to activate or deactivate the sensors.
+    /// - `/model/{model_name}/sensor/{sensor_name}/activate`: A topic to activate or deactivate the sensor
+    ///
+    /// This system does not require any configuration. Although it requires the 
+    /// presence of a Battery plugin in the entity and each sensors should contain the 
+    /// following parameters:
+    /// - `battery_name`: The name of the battery that powers the sensor
+    /// - `power_load`: The power load of the sensor
+    /// TODO(@stevedanomodolor): Ideally this should be part of the sensors system plugin
+    /// This way not only can we manage the power load of the sensors but also desable the sensors
+    /// both for the rendering and the physics engine. Lack of public API to do this is the reason
+    /// why this is a separate plugin.
 
 class SensorPowerSystemPlugin
     : public ignition::gazebo::System,
@@ -72,29 +40,25 @@ class SensorPowerSystemPlugin
         public:
             ~SensorPowerSystemPlugin() override;
 
-            // Configure the plugin
+            /// Documentation Inherited
         public:
             void Configure(const ignition::gazebo::Entity &_entity,
                         const std::shared_ptr<const sdf::Element> &_sdf,
                         ignition::gazebo::EntityComponentManager &_ecm,
                         ignition::gazebo::EventManager &_eventMgr) final;
+            /// Documentation Inherited
         public:
             void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
                         ignition::gazebo::EntityComponentManager &_ecm) override;
 
-            // PostUpdate
+            /// Documentation Inherited
         public:
             void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
                             const ignition::gazebo::EntityComponentManager &_ecm) override;
+            /// \brief Private data pointer
         private:
             std::unique_ptr<SensorPowerSystemPrivate> dataPtr;
       };
-
-
-
-
-
-
 }
 
 #endif // SENSOR_POWER_SYSTEM_HH_
