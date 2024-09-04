@@ -153,7 +153,7 @@
           <link_name>arm_tools</link_name>
           <nominal_power>100.0</nominal_power>
       </plugin>
-      <plugin filename="libRtgPlugin.so" name="simulation::RtgPlugin">
+      <plugin filename="libRadioisotopeThermalGeneratorPlugin.so" name="simulation::RadioisotopeThermalGeneratorPlugin">
           <link_name>chassis</link_name>
             <nominal_power>100.0</nominal_power>
         </plugin>
