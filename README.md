@@ -131,7 +131,7 @@ The plugin needs to be attached to a model. Example below:
 ### SensorPowerSystemPlugin
 The sensor power system plugin pairs with the RechargeableBatteryPlugin allowing one to define for each sensor the power load it consumes from any battery in the model. Sensors can be deactivated to save power (as it is often the case on real space missions). When the battery is too low, the sensors managed by the plugin will also be deactivated. In addition, topics are exposed to disable the power load of each sensor consumption on demand. The topic uses the following format. 
 
- * **/model/lunar_pole_exploration_rover/sensor/<sensor-name>/activate** (`ìgnition_msgs::msg::Boolean`) -- Topic available to activate/deactivate the power consumption of sensor.
+ * **/model/lunar_pole_exploration_rover/sensor/`<sensor-name>`/activate** (`ìgnition_msgs::msg::Boolean`) -- Topic available to activate/deactivate the power consumption of sensor.
 
 The model can have multiple batteries and each sensor consumes from any of those batteries. 
 
