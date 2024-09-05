@@ -91,6 +91,9 @@ The rechargeable battery plugin is a modified version of the stock LinearBattery
   * **resistance** (`double`) -- Internal resistance in Ohm
   * **smooth_current_tau** (`double`) -- Coefficient for smoothing current [0, 1]
   * **power_source** (`array[str]`) -- List of topic of power sources.
+  * **start_draining** (`boolean`) -- Whether to start draining the battery
+  * **power_draining_topic** (`str`) -- This is the topic to start draining the battery
+  * **stop_power_draining_topic** (`str`) -- This is to stop draining the battery
   * **power_load** (`double`) -- Idle power load
  
  * Publications
