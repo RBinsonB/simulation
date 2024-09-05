@@ -204,6 +204,7 @@ It features a similar sensor suit of the real VIPER rover:
 * **/model/lunar_pole_exploration_rover/odometry** (`ignition_msgs::msg::Odometry`) -- Robot odometry
 * **/model/lunar_pole_exploration_rover/odometry_with_covariance**(`ignition_msgs::msg::OdometryWithCovariance`) -- Robot odometry
 * **/model/lunar_pole_exploration_rover/pose**(`ignition_msgs::msg::Pose`) -- Robot estimated pose from odometry
+* **/model/lunar_pole_exploration_rover/battery/rechargeable_battery/state** (`ìgnition_msgs::msg::BaterrySate`) -- Publishes the current state of the battery **rechargeable_battery**
 * **aft_cam_left/camera_info** (`ignition_msgs::msg::CameraInfo`) -- AftCam left camera info
 * **aft_cam_right/camera_info** (`ignition_msgs::msg::CameraInfo`) -- AftCam right camera info
 * **nav_cam_left/camera_info** (`ignition_msgs::msg::CameraInfo`) -- NavCam left camera info
