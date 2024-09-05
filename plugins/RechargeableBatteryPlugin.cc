@@ -608,15 +608,9 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
         if (powerSource.dataUpdated)
         {
             powerSource.dataUpdated = false;
-            ignerr << "Power source [" << powerSource.id << "] updated with power: " << powerSource.nominalPower << std::endl;
             this->dataPtr->totalPowerSupply += powerSource.nominalPower;
         }
     }
-
-    ignerr << "SOC: " << this->dataPtr->StateOfCharge() << std::endl;
-    ignerr << "total power supply: " << this->dataPtr->totalPowerSupply << std::endl;
-    ignerr << "total power: " << totalpower << std::endl;
-    ignerr << "iraw: " << this->dataPtr->iraw << std::endl;
 
     // check if the total powersupply is not zero
     this->dataPtr->isCharging = this->dataPtr->totalPowerSupply > 1e-9 && this->dataPtr->StateOfCharge() < 0.9;
@@ -626,11 +620,7 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
     if (this->dataPtr->isCharging)
     {
         powerSourceCurrent = this->dataPtr->totalPowerSupply / _battery->Voltage();
-        ignerr << "Charging current: " << powerSourceCurrent << std::endl;
-        ignerr << "iraw: " << this->dataPtr->iraw << std::endl;
         this->dataPtr->iraw -= powerSourceCurrent;
-        ignerr << "Charging current: " << powerSourceCurrent << std::endl;
-        ignerr << "iraw: " << this->dataPtr->iraw << std::endl;
     }
     // reset total power supply to zero
     this->dataPtr->totalPowerSupply = 0.0;
@@ -644,14 +634,6 @@ double RechargeableBatteryPlugin::OnUpdateVoltage(const ignition::common::Batter
 
     // open circuit voltage
     double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (1 - this->dataPtr->q / this->dataPtr->c) - this->dataPtr->r * this->dataPtr->ismooth;
-
-    ignerr << "e0: " << this->dataPtr->e0 << std::endl;
-    ignerr << "e1: " << this->dataPtr->e1 << std::endl;
-    ignerr << "q: " << this->dataPtr->q << std::endl;
-    ignerr << "c: " << this->dataPtr->c << std::endl;
-    ignerr << "r: " << this->dataPtr->r << std::endl;
-    ignerr << "ismooth: " << this->dataPtr->ismooth << std::endl;
-    ignerr << "Battery voltage: before update voltage" << voltage << std::endl;
 
     // Estimate state of charge
     this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
