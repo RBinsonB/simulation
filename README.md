@@ -94,7 +94,7 @@ The rechargeable battery plugin is a modified version of the stock LinearBattery
   * **power_load** (`double`) -- Idle power load
  
  * Publications
-   TODO
+   * **/model/lunar_pole_exploration_rover/battery/rechargeable_battery/state** (`ìgnition_msgs::msg::BaterrySate`) -- Publishes the current state of the battery **rechargeable_battery**
 
 ### SensorPowerSystemPlugin
 The sensor power system plugin pairs with the RechargeableBatteryPlugin to give selected a power load that will drain the battery. Sensors can be deactivated to save power (as it is often the case on real space missions). When the battery is too low, the sensors managed by the plugin will also be deactivated.
