@@ -99,12 +99,6 @@ The rechargeable battery plugin is a modified version of the stock LinearBattery
  * Publications
    * **/model/lunar_pole_exploration_rover/battery/rechargeable_battery/state** (`ìgnition_msgs::msg::BaterrySate`) -- Publishes the current state of the battery **rechargeable_battery**
 
-### SensorPowerSystemPlugin
-The sensor power system plugin pairs with the RechargeableBatteryPlugin to give selected a power load that will drain the battery. Sensors can be deactivated to save power (as it is often the case on real space missions). When the battery is too low, the sensors managed by the plugin will also be deactivated.
-
-TODO: documents fully SensorPowerSystemPlugin 
- 
-
 #### How to setup the plugin
 The plugin needs to be attached to a model. Example below:
 
@@ -133,6 +127,54 @@ The plugin needs to be attached to a model. Example below:
 * The power source topic needs to be on the format `<link_name>/<plugin_power_output_name>`. As of now, the following plugins can provide power to charge the battery:
   * **SolarPanelPlugin**: with topic `<link_name>/solar_panel_output`
   * **RadioisotopeThermalGeneratorPlugin**: with topic `<link_name>/radioisotope_thermal_generator_output`
+
+### SensorPowerSystemPlugin
+The sensor power system plugin pairs with the RechargeableBatteryPlugin allowing one to define for each sensor the power load it consumes from any battery in the model. Sensors can be deactivated to save power (as it is often the case on real space missions). When the battery is too low, the sensors managed by the plugin will also be deactivated. In addition, topics are exposed to disable the power load of each sensor consumption on demand. The topic uses the following format. 
+
+ * **/model/lunar_pole_exploration_rover/sensor/<sensor-name>/activate** (`ìgnition_msgs::msg::Boolean`) -- Topic available to activate/deactivate the power consumption of sensor.
+
+The model can have multiple batteries and each sensor consumes from any of those batteries. 
+
+#### How to setup the plugin
+The plugin needs to be attached to a model. Example below:
+
+```XML
+ <plugin filename="libSensorPowerSystemPlugin.so" name="simulation::SensorPowerSystemPlugin">
+ </plugin>
+```
+
+In addition, you need to include in each of the sensors, the power load and the battery they consume from. Example below:
+
+```XML
+ <gazebo reference="nav_camera_link_left">
+    <sensor type="camera" name="NavCam_left">
+        <visualize>1</visualize>
+        <update_rate>10.0</update_rate>
+        <power_load>11.0</power_load>
+        <battery_name>rechargeable_battery</battery_name>
+        <camera>
+            <pose>1.0 0 0 0 0 0</pose>
+            <horizontal_fov>1.22173</horizontal_fov>
+            <image>
+                <width>2048</width>
+                <height>2048</height>
+                <format>L16</format>
+            </image>
+            <clip>
+                <near>0.01</near>
+                <far>100</far>
+            </clip>
+            <noise>
+                <type>gaussian</type>
+                <stddev>0.007</stddev>
+            </noise>
+        </camera>
+        <always_on>1</always_on>
+        <topic>navcam_left/image_raw</topic>
+    </sensor>
+</gazebo>
+```
+ 
 
 ## Models
 
