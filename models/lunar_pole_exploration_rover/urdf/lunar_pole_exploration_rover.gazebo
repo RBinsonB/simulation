@@ -169,7 +169,7 @@
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
             <power_load>12.0</power_load>
-                <battery_name>rechargeable_battery</battery_name>
+            <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.22173</horizontal_fov>
@@ -197,7 +197,7 @@
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
             <power_load>13.0</power_load>
-                <battery_name>rechargeable_battery</battery_name>
+            <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.91986</horizontal_fov>
@@ -225,7 +225,7 @@
             <visualize>1</visualize>
             <update_rate>10.0</update_rate>
             <power_load>15.0</power_load>
-                <battery_name>rechargeable_battery</battery_name>
+            <battery_name>rechargeable_battery</battery_name>
             <camera>
                 <pose>1.0 0 0 0 0 0</pose>
                 <horizontal_fov>1.91986</horizontal_fov>
@@ -248,13 +248,125 @@
         </sensor>
     </gazebo>
 
+    <gazebo reference="haz_camera_link_left_front">
+        <sensor type="camera" name="HazCam_left_front">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <power_load>15.0</power_load>
+            <battery_name>rechargeable_battery</battery_name>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>hazcam_left_front/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="haz_camera_link_left_rear">
+        <sensor type="camera" name="HazCam_left_rear">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <power_load>15.0</power_load>
+            <battery_name>rechargeable_battery</battery_name>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>hazcam_left_rear/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="haz_camera_link_right_front">
+        <sensor type="camera" name="HazCam_right_front">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <power_load>15.0</power_load>
+            <battery_name>rechargeable_battery</battery_name>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>hazcam_right_front/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="haz_camera_link_right_rear">
+        <sensor type="camera" name="HazCam_right_rear">
+            <visualize>1</visualize>
+            <update_rate>10.0</update_rate>
+            <power_load>15.0</power_load>
+            <battery_name>rechargeable_battery</battery_name>
+            <camera>
+                <pose>1.0 0 0 0 0 0</pose>
+                <horizontal_fov>1.91986</horizontal_fov>
+                <image>
+                    <width>2048</width>
+                    <height>2048</height>
+                    <format>L16</format>
+                </image>
+                <clip>
+                    <near>0.01</near>
+                    <far>100</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <always_on>1</always_on>
+            <topic>hazcam_right_rear/image_raw</topic>
+        </sensor>
+    </gazebo>
+
     <gazebo reference="body">
         <sensor name="imu_sensor" type="imu">
             <always_on>1</always_on>
             <update_rate>100</update_rate>
             <visualize>true</visualize>
             <power_load>16.0</power_load>
-                <battery_name>rechargeable_battery</battery_name>
+            <battery_name>rechargeable_battery</battery_name>
             <topic>imu</topic>
         </sensor>
     </gazebo>
