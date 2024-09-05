@@ -78,7 +78,7 @@ The plugin needs to be attached to a model. Example below:
 ```
 
 ### RechargeableBatteryPlugin
-The rechargeable battery plugin is a modified version of the stock LinearBatteryPlugin to allow recharge at variable rate. It can be charged by any plugin providing a power output in watt on a Gazebo topic.
+The rechargeable battery plugin is a modified version of the stock LinearBatteryPlugin to allow recharge at a variable rate. It can be charged by any plugin providing a power output in watts on a Gazebo topic. In addition, by default, if no start draining topic is defined, the battery starts to drain as soon as the robot starts to move. 
 
 * Required elements
   * **battery_name** (`str`) -- Unique name for the battery (required)
